@@ -2,7 +2,7 @@
 % main.tex — On Cyberspace and Agentics
 % ============================================================
 
-\input{preamble.tex}  % loads class, packages, styles, macros, TAGS
+\input{preamble}  % loads class, packages, styles, macros, TAGS
 
 % --- Document metadata --------------------------------------
 \title{On Cyberspace and Agentics}
@@ -10,6 +10,7 @@
 \date{\today}
 
 \begin{document}
+
 \maketitle
 
 % --- Abstract (short + guiding) ------------------------------
@@ -21,20 +22,10 @@ governance and craft held in phase so the commons remains inhabitable.
 
 \tableofcontents
 
-% --- Core content --------------------------------------------
-\input{sections.tex}
-
 % --- Optional: Tag legend from TAGS.md -----------------------
 \clearpage
 \appendix
-\section{Tag Legend (from \texttt{TAGS.md})}
-\PrintTagLegend
 
-% In main.tex, near the end (before \end{document})
-\IfFileExists{biblio/refs.bib}{
-  % Print only if there are citations
-  \nocite{*} % remove this if you *don't* want all entries listed
-  \printbibliography
-}{}
+\printbibliography
 
 \end{document}

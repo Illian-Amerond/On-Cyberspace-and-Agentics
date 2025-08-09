@@ -2,11 +2,18 @@
 % TAGS.tex — live tag registry loader (uses TAGS.md)
 % Requires: LuaLaTeX, expl3
 % ============================================================
+\RequirePackage{expl3,xparse}
 \ExplSyntaxOn
-\prop_new:N \g_tags_registry_prop
-\prop_new:N \g_tags_family_prop
 
-% Map headings in TAGS.md to families we print in the PDF
+% --- scratch structures -------------------------------------
+\prop_new:N \g_tags_registry_prop   % TAG -> family heading (as read)
+\prop_new:N \g_tags_family_prop     % Heading normalization (for legend)
+\cs_if_exist:NF \l_tmpa_seq { \seq_new:N \l_tmpa_seq }
+\cs_if_exist:NF \l_tmpb_seq { \seq_new:N \l_tmpb_seq }
+
+
+% --- Map headings in TAGS.md to legend family names ----------
+% (extend as you add headings to TAGS.md)
 \prop_gput:Nnn \g_tags_family_prop {Structural} {Structural}
 \prop_gput:Nnn \g_tags_family_prop {Framework}  {Structural}
 \prop_gput:Nnn \g_tags_family_prop {Process}    {Process}
@@ -17,78 +24,145 @@
 \prop_gput:Nnn \g_tags_family_prop {Operational}{Meta}
 \prop_gput:Nnn \g_tags_family_prop {Seeded Epiphany Matrix}{Epiphany}
 \prop_gput:Nnn \g_tags_family_prop {Epiphany}   {Epiphany}
+\prop_gput:Nnn \g_tags_family_prop {ONTO} {ONTO}
+\prop_gput:Nnn \g_tags_family_prop {EPI}  {EPI}
+\prop_gput:Nnn \g_tags_family_prop {META} {META}
+\ExplSyntaxOff
+% --- Lua-based loader: \LoadTagsFromMarkdownLua{<file>} -------
+\ExplSyntaxOn
+\cs_new_protected:Npn \tags_register_pair:nn #1#2
+  { \prop_put_if_new:Nnn \g_tags_registry_prop {#1} {#2} }
+\ExplSyntaxOff
 
-% --- Lua: parse TAGS.md tables and description lists -----------
-\NewDocumentCommand{\LoadTagsFromMarkdown}{m}
- {
-  \ior_new:N \l__tags_file_ior
-  \ior_open:Nn \l__tags_file_ior {#1}
-  \bool_new:N \l__tags_in_family_bool
-  \tl_clear_new:N \l__tags_current_family_tl
-  \group_begin:
-  \char_set_catcode_other:N \#
-  \char_set_catcode_other:N \|
-  \char_set_catcode_other:N \[
-  \char_set_catcode_other:N \]
-  \char_set_catcode_other:N \_
-  \int_zero_new:N \l__tags_line_int
-  \ior_map_inline:Nn \l__tags_file_ior
-   {
-     \int_incr:N \l__tags_line_int
-     \tl_set:Nn \l_tmpa_tl {##1}
-     % Detect family headings: lines starting with '## '
-     \regex_if_match:nnTF { ^\s*##\s+(.+) } { \tl_use:N \l_tmpa_tl }
-      {
-        \regex_extract:nnN { ^\s*##\s+(.+) } { \tl_use:N \l_tmpa_tl } \l_tmpa_seq
-        \tl_set:Nx \l__tags_current_family_tl { \seq_item:Nn \l_tmpa_seq {1} }
-      }
-      {
-        % Table row: | TAG | ...
-        \regex_if_match:nnT { ^\|\s*([A-Z][A-Z0-9_]+)\s*\| } { \tl_use:N \l_tmpa_tl }
-         {
-           \regex_extract:nnN { ^\|\s*([A-Z][A-Z0-9_]+)\s*\| } { \tl_use:N \l_tmpa_tl } \l_tmpb_seq
-           \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq {1} }
-           \tl_set:Nx \l_tmpc_tl { \l__tags_current_family_tl }
-           \prop_put_if_new:NVV \g_tags_registry_prop \l_tmpb_tl \l_tmpc_tl
-         }
-        % Description bullet: [TAG]
-        \regex_if_match:nnT { \[([A-Z][A-Z0-9_]+)\] } { \tl_use:N \l_tmpa_tl }
-         {
-           \regex_extract:nnN { \[([A-Z][A-Z0-9_]+)\] } { \tl_use:N \l_tmpa_tl } \l_tmpb_seq
-           \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq {1} }
-           \tl_set:Nx \l_tmpc_tl { \l__tags_current_family_tl }
-           \prop_put_if_new:NVV \g_tags_registry_prop \l_tmpb_tl \l_tmpc_tl
-         }
-      }
-   }
-  \group_end:
-  \ior_close:N \l__tags_file_ior
- }
+\ExplSyntaxOn
+\newcommand*\LoadTagsFromMarkdownLua[1]{%
+  \directlua{%
+    local fname = tex.toks[0]  -- grab the filename passed via \toks
+    local f = io.open(fname, "r")
+    if not f then
+      tex.error("TAGS.md not found", {"File: "..fname})
+      return
+    end
+    local family = "Uncategorized"
+    for line in f:lines() do
+      -- skip fenced code blocks
+      if line:match("^%s*```") then
+        -- toggle, but simplest is to just skip lines until next ```
+        -- (omit if you don't use code fences in TAGS.md)
+      end
+      -- heading: ## FAMILY
+      local h = line:match("^%s*##%s+(.+)%s*$")
+      if h then family = h end
+      -- table row: | TAG | ...
+      local t = line:match("^%|%s*([A-Z][A-Z0-9_]+)%s*%|")
+      if t then
+        tex.sprint("\\ExplSyntaxOn\\tags_register_pair:nn{"..t.."}{"..family.."}\\ExplSyntaxOff")
+      else
+        -- bullet: [TAG]
+        local b = line:match("%[([A-Z][A-Z0-9_]+)%]")
+        if b then
+          tex.sprint("\\ExplSyntaxOn\\tags_register_pair:nn{"..b.."}{"..family.."}\\ExplSyntaxOff")
+        end
+      end
+    end
+    f:close()
+  }%
+}
+% helper to pass the filename safely to Lua:
+\newcommand*\LoadTagsFromMarkdown[1]{\begingroup\toks0={#1}\endgroup\LoadTagsFromMarkdownLua{#1}}
+\ExplSyntaxOff
+% ------- Public API: \Tag and \PrintTagLegend ----------------
+\ExplSyntaxOn
 
-% Query helpers
-\cs_new:Npn \tags_family_of:n #1
- {
-   \prop_item:Nn \g_tags_registry_prop {#1}
- }
+% look up the family for a tag (uppercase key)
+\cs_new:Npn \tags_family_of:n #1 { \prop_item:Nn \g_tags_registry_prop {#1} }
 
-% --- Public macro: \Tag[<LAYER>]{<NAME>} ----------------------
-\NewDocumentCommand{\Tag}{O{} m}
+% \Tag[<LAYER>]{<NAME>} → prints [NAME] or [LAYER:NAME]
+\NewDocumentCommand{\Tag}{ O{} m }
  {
-   \tl_set:Nx \l_tmpa_tl { \tl_upper_case:n {#2} }
-   \tl_set:Nx \l_tmpb_tl { \tags_family_of:n { \l_tmpa_tl } }
-   \tl_if_blank:NF \l_tmpb_tl {} % exists
+   \tl_set:Nx \l_tmpa_tl { \tl_upper_case:n {#2} }           % tag key
+   \tl_set:Nx \l_tmpb_tl { \tags_family_of:n { \l_tmpa_tl } } % family (may be empty)
    \tl_if_blank:TF \l_tmpb_tl
-     { % unknown tag → warn once; still print
-       \PackageWarning{TAGS}{Unknown tag '#2' used; add to TAGS.md?}
-       {\small\textsc{[#1:#2]}}%
-     }
+     { \PackageInfo{TAGS}{Unknown tag '#2' used; add to TAGS.md?} } % soft notice
+     { }
+   \tl_if_blank:nTF {#1}
+     { {\small\textsc{[\l_tmpa_tl]}} }
      { {\small\textsc{[#1:\l_tmpa_tl]}} }
  }
 
-% --- Optional: print a compact legend from loaded registry ----
+% Simple legend printer (lists TAG → family as read from TAGS.md)
 \NewDocumentCommand{\PrintTagLegend}{}{
-  \par\medskip\noindent\textbf{Tag Legend (from TAGS.md).}\par
-  \prop_map_inline:Nn \g_tags_registry_prop
-   { \noindent\texttt{##2}:\quad \textsc{##1}\par }
+  \par\medskip\noindent\textbf{Tag Legend (from \texttt{TAGS.md})}\par
+  \int_zero_new:N \l__tags_count_int
+  \prop_map_inline:Nn \g_tags_registry_prop { \int_incr:N \l__tags_count_int }
+  \int_compare:nTF { \l__tags_count_int > 0 }
+   {
+     \prop_map_inline:Nn \g_tags_registry_prop
+       { \noindent\textsc{##1}\ \texttt{→}\ \texttt{##2}\par }
+   }
+   {
+     \noindent\emph{(No tags loaded — check \LoadTagsFromMarkdown\ and TAGS.md.)}\par
+   }
 }
 \ExplSyntaxOff
+
+% -------------------------------------------------------------
+
+
+
+% ============================================================
+% HOW TO USE — TAGS.tex
+% ============================================================
+%
+% Purpose:
+% --------
+% This file loads and manages the live Tag Registry for the
+% project, using definitions stored in TAGS.md. It ensures
+% that all \Tag commands in the document reference a known tag
+% family, and it can print a legend from the registry.
+%
+% Workflow:
+% ---------
+% 1. Maintain all tag definitions in TAGS.md, grouped under
+%    Markdown headings (## FAMILY NAME).
+%    - Headings map to tag families.
+%    - Tags may appear in:
+%        a) Markdown tables: | TAG | Description |
+%        b) Bulleted lists:  [TAG] — Description...
+%
+% 2. Load the registry in your main.tex:
+%       \input{TAGS.tex}
+%       \LoadTagsFromMarkdown{TAGS.md}
+%
+% 3. Use tags in your LaTeX text:
+%       \Tag[ONTO]{CORE}    → prints “[ONTO:CORE]”
+%       \Tag{CORE}          → prints “[CORE]” (no layer)
+%
+% 4. (Optional) Print the legend in your doc:
+%       \PrintTagLegend
+%    This will render all tags with their mapped families.
+%
+% Conventions:
+% ------------
+% - Tag names are stored uppercase internally; input is
+%   case-insensitive.
+% - If a tag is used but not found in TAGS.md, LaTeX will
+%   emit a warning and still print it.
+% - Families are mapped in the \g_tags_family_prop property
+%   near the top of this file — extend that map if you add
+%   new headings to TAGS.md.
+%
+% Dependencies:
+% -------------
+% - LuaLaTeX (for file I/O and regex via expl3)
+% - expl3, xparse packages
+%
+% Best Practices:
+% ---------------
+% - Update TAGS.md before using a new tag in content.
+% - Keep TAGS.md sorted and readable — it’s the single
+%   source of truth for tag metadata.
+% - Use consistent family headings for predictable legend
+%   output.
+%
+% ============================================================

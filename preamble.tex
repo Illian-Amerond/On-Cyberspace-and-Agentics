@@ -6,22 +6,23 @@
 
 % Layout & micro-typography (safe; not duplicating style files)
 \usepackage[a4paper,margin=1in]{geometry}
-\usepackage{microtype}
 \usepackage{setspace}
 \setstretch{1.15}
 
 % Voice stack (loads fonts, math, polyglossia, unicode-math, etc.)
-\usepackage{./voice}       % voice.sty — codex tone & components
-\usepackage{./typography}  % typography.sty — font + math setup (LuaLaTeX)
-\usepackage{./colors}      % colors.sty — palette
-\usepackage{./glyphs}      % glyphs.sty — TikZ glyphs
+\usepackage{voice/typography}  % typography.sty — font + math setup (LuaLaTeX)
+\usepackage{voice/voice}       % voice.sty — codex tone & components
+\usepackage{voice/colors}      % colors.sty — palette
+\usepackage{voice/glyphs}      % glyphs.sty — TikZ glyphs
 
-% Math & semantics
-\input{macros.tex}
 
-% Tags (live from TAGS.md)
+
+% --- tags system (must come BEFORE you use \PrintTagLegend)
 \input{TAGS.tex}
 \LoadTagsFromMarkdown{TAGS.md}
+
+% Math & semantics
+\input{macros/macros}
 
 % Graphics / TikZ (if not already pulled by glyphs)
 \usepackage{graphicx}
@@ -29,7 +30,6 @@
 \usetikzlibrary{calc,positioning,shapes,arrows.meta}
 
 % Links
-\usepackage[hidelinks]{hyperref}
 \hypersetup{
   pdftitle  ={On Cyberspace and Agentics},
   pdfauthor ={Illian and Robert Watkins},

@@ -1,60 +1,43 @@
 %==============================================================
-% typography.sty — Fonts, spacing, lists, captions, refs
-% Requires LuaLaTeX
+% typography.sty — Fonts, spacing, lists, captions, code, math
+% Requires: LuaLaTeX
 %==============================================================
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{typography}[2025/08/09 v0.1 Full Voice typography]
+\ProvidesPackage{typography}[2025/08/09 v0.2 Full Voice typography]
 
 %---------------- Fonts (LuaLaTeX) -----------------------------
 \RequirePackage{fontspec}
 \defaultfontfeatures{Ligatures=TeX,Renderer=Basic}
 % TeX Gyre families are available on Overleaf and print well
 \setmainfont[
-  Numbers={OldStyle,Proportional},
+  Numbers   ={OldStyle,Proportional},
   StylisticSet=1
 ]{TeX Gyre Pagella}
-\setsansfont[
-  Scale=MatchLowercase
-]{TeX Gyre Heros}
-\setmonofont[
-  Scale=MatchLowercase
-]{Inconsolata}
+\setsansfont[Scale=MatchLowercase]{TeX Gyre Heros}
+\setmonofont[Scale=MatchLowercase]{Inconsolata}
 
 % Optional: nicer small caps if available
-\addfontfeatures{RawFeature={+smcp}} % enable true small caps when requested
+\addfontfeatures{RawFeature={+smcp}} % enable true small caps on demand
 
 %---------------- Micro-typography & math ----------------------
-\RequirePackage[final]{microtype} % protrusion + expansion
-\RequirePackage{mathtools}
+\PassOptionsToPackage{final}{microtype} % protrusion + expansion
+\RequirePackage{microtype}
+
+% Math stack: keep mathtools (→ amsmath) first, then unicode-math.
+% We silence unicode-math’s “I’m overwriting mathtools colons/brackets” warnings.
+\RequirePackage{mathtools}    % loads amsmath
 \RequirePackage{unicode-math}
+\unimathsetup{warnings-off={mathtools-colon,mathtools-overbracket}}
 \setmathfont{TeX Gyre Pagella Math}
-
-% Multilingual: polyglossia + csquotes integration
-\RequirePackage{polyglossia}
-\setdefaultlanguage{english}
-% Declare languages you expect to use (add as needed)
-\setotherlanguages{spanish,french,german,italian,portuguese,arabic,chinese,japanese,korean}
-
-% Fonts with broad Unicode coverage (swap to your brand later)
-\setmainfont{TeX Gyre Pagella}
-\newfontfamily\latinfont{TeX Gyre Pagella}
-\newfontfamily\arabicfont[Script=Arabic,Scale=MatchLowercase]{Amiri}
-\newfontfamily\chinesefont[Script=Hans,Scale=MatchLowercase]{Noto Serif CJK SC}
-\newfontfamily\japanesefont[Script=Kana,Scale=MatchLowercase]{Noto Serif CJK JP}
-\newfontfamily\koreanfont[Script=Hangul,Scale=MatchLowercase]{Noto Serif CJK KR}
 
 %---------------- Layout rhythm --------------------------------
 \RequirePackage{setspace}
-\setstretch{1.08} % gentle air without bloating
-\RequirePackage{parskip} % space between paragraphs, no indents
+\setstretch{1.08} % gentle air without bloat
+\RequirePackage{parskip}      % space between paragraphs, no first-indent
 
 %---------------- Lists (tight + readable) ----------------------
 \RequirePackage{enumitem}
-\setlist{
-  nosep,
-  leftmargin=2em,
-  labelsep=0.6em
-}
+\setlist{nosep,leftmargin=2em,labelsep=0.6em}
 \newlist{tightitemize}{itemize}{1}
 \setlist[tightitemize]{nosep,leftmargin=1.4em,label=--}
 
@@ -69,19 +52,6 @@
   aboveskip=8pt
 }
 
-%---------------- References (cleveref tuned) -------------------
-\RequirePackage{cleveref}
-% Short, publication-style names; voice.sty sets link colors
-\crefname{figure}{Fig.}{Figs.}
-\Crefname{figure}{Fig.}{Figs.}
-\crefname{table}{Table}{Tables}
-\Crefname{table}{Table}{Tables}
-\crefname{section}{§}{§§}
-\Crefname{section}{§}{§§}
-\crefname{appendix}{App.}{Apps.}
-\Crefname{appendix}{App.}{Apps.}
-\crefformat{equation}{(#2#1#3)}
-
 %---------------- Code blocks (verbatim aesthetics) -------------
 \RequirePackage{fvextra}
 \DefineVerbatimEnvironment{code}{Verbatim}{
@@ -92,10 +62,12 @@
 %---------------- Quotation rhythm ------------------------------
 \RequirePackage{csquotes}
 \SetBlockEnvironment{quote}
-\renewenvironment{quote}{\list{}{\leftmargin=1.3em\rightmargin=0em}\item\relax\small}{\endlist}
+\renewenvironment{quote}
+  {\list{}{\leftmargin=1.3em\rightmargin=0em}\item\relax\small}
+  {\endlist}
 
 %---------------- Section spacing (compact, dignified) ----------
-% Titles still come from \Section in voice.sty; this just trims spacing
+% Visual heading style lives in voice.sty; here we just trim gaps.
 \RequirePackage{titlesec}
 \titlespacing*{\section}{0pt}{1.25\baselineskip}{0.6\baselineskip}
 \titlespacing*{\subsection}{0pt}{1.0\baselineskip}{0.45\baselineskip}
@@ -111,8 +83,13 @@
 \hyphenpenalty=50
 \emergencystretch=2em
 
-% Blackboard bold math symbols (for indicator function)
+% Blackboard bold math symbols (e.g., \mathbbm{1})
 \RequirePackage{bbm}
+
+% NOTE: Do NOT load cleveref here; load it in the preamble
+% AFTER this package (so amsmath/mathtools are already present).
+
+\endinput
 
 % End typography.sty
 % ------------------------------------------------------------

@@ -15,9 +15,9 @@
 \RequirePackage{cleveref}
 
 %--- Project packs (defined in /voice/)
-\RequirePackage{colors}      % defines named hues (MotherTeal, FatherGold, etc.)
-\RequirePackage{glyphs}      % defines \Glyph{<name>} or no-op if unknown
-\RequirePackage{typography}  % fonts, microtype, spacing, cleveref setup
+\RequirePackage{voice/colors}      % defines named hues (MotherTeal, FatherGold, etc.)
+\RequirePackage{voice/glyphs}      % defines \Glyph{<name>} or no-op if unknown
+\RequirePackage{voice/typography}  % fonts, microtype, spacing, cleveref setup
 
 %---------------------------------------------------------------
 % Toggle hooks for security voice-layers (optional)
@@ -38,17 +38,10 @@
 %---------------------------------------------------------------
 % Semantic emphasis (NO '*' markup anywhere in content)
 %---------------------------------------------------------------
-\NewDocumentCommand{\i}{m}{\emph{#1}}                % primary emphasis
-\NewDocumentCommand{\b}{m}{\textbf{#1}}              % strong emphasis
-\NewDocumentCommand{\ib}{m}{\textbf{\emph{#1}}}      % layered emphasis
-
-% Key term (sc + subtle hue). Retargetable centrally.
-\NewDocumentCommand{\key}{m}{%
-  {\textsc{\textcolor{MotherTeal!85!black}{#1}}}%
-}
-
-% Inline accent for names/signals (soft, non-bold):
-\NewDocumentCommand{\accent}{O{FatherGold!80!black} m}{\textcolor{#1}{#2}}
+\ProvideDocumentCommand{\emphit}{m}{\emph{#1}}
+\ProvideDocumentCommand{\strong}{m}{\textbf{#1}}
+\ProvideDocumentCommand{\accentcolor}{O{FatherGold!80!black} m}{\textcolor{#1}{#2}}
+\ProvideDocumentCommand{\captext}{m}{\emphit{#1}}
 
 %---------------------------------------------------------------
 % Paragraph voice markers (propositional / perspectival / participatory)
@@ -126,19 +119,8 @@
 }
 
 % Optional: emphasize caption purpose lightly
-\NewDocumentCommand{\cap}{m}{\i{#1}}
+\NewDocumentCommand{\ecap}{m}{\i{#1}}
 
-%---------------------------------------------------------------
-% Safe hyperlink colors (subtle; respects print)
-%---------------------------------------------------------------
-\hypersetup{
-  colorlinks=true,
-  linkcolor=MotherTeal!70!black,
-  citecolor=FatherGold!70!black,
-  urlcolor=GnomeGreen!70!black,
-  pdfauthor={Illian & Robert Watkins},
-  pdftitle={On Cyberspace and Agentics}
-}
 
 %---------------------------------------------------------------
 % Author discipline: forbid '*' emphasis by making them no-ops (optional)
@@ -148,10 +130,6 @@
   \let\textit\relax
   \DeclareTextFontCommand{\textit}{\itshape} % restore for packages
   % No markdown asterisk rescue—authors must use \i, \b, \ib, \key
-}
-% --- Changelog tag chips (compiler-safe) ----------------------
-\NewDocumentCommand{\Tag}{m}{%
-  {\small\textsc{[#1]}}%
 }
 
 % --- Inline ledger (for a quick line in the header) -----------
@@ -173,7 +151,7 @@
 }
 
 % --- Dual-layer Tag (Ontological / Epistemological) ----------
-\NewDocumentCommand{\Tag}{O{} m}{%
+\NewDocumentCommand{\DTag}{O{} m}{%
   {\small\textsc{[#1:#2]}}%
 }
 
@@ -186,20 +164,7 @@
 \NewDocumentCommand{\transnote}{m m}{% lang code, text
   \footnote{\textsc{[#1]}~#2}
 }
-
-% --- Canonical ledgers (voice.sty) ---------------------------
-\NewDocumentEnvironment{SectionHeaderLedger}{m}{% #1 title
-  \begin{callout}[\i{Section Ledger:}~#1]{GhostGray}\small
-}{%
-  \end{callout}
-}
-
-\NewDocumentEnvironment{SectionFooterLedger}{}{%
-  \begin{callout}[\i{Section Ledger: Updates}]{GhostGray}\small
-}{%
-  \end{callout}
-}
-
+\endinput
 
 % End voice.sty
 % ------------------------------------------------------------

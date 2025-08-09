@@ -78,6 +78,12 @@ json:
 json-grouped:
 	@$(PYTHON) $(SCRAPER) --root $(SECTIONS_DIR) --json grouped --group-by tag --tags-reg TAGS.md > engram_by_tag.json
 
+telemetry-snapshot:
+	@mkdir -p telemetry/private
+	@ts=$$(date -u +%Y%m%dT%H%M%SZ); \
+	$(PYTHON) $(SCRAPER) --root $(SECTIONS_DIR) --json raw --tags-reg TAGS.md > telemetry/private/engram_$${ts}.json; \
+	echo "[ok] wrote telemetry/private/engram_$${ts}.json"
+
 # ----- Ledger peek (recursive; handles spaces) -----
 ledger:
 	@echo "[info] printing SectionHeaderLedger / SectionFooterLedger blocks from $(SECTIONS_DIR)"
@@ -126,3 +132,75 @@ help:
 	@echo "make validate         # CI-friendly: fail on unknown tags"
 	@echo "make clean            # remove build artifacts"
 
+# -------- Versioning & commit meta ---------------------------------
+VERSION_FILE := VERSION
+VERSION := $(shell cat $(VERSION_FILE) 2>/dev/null || echo v0.0.0)
+DATE := $(shell date -u +%F)
+
+# Caller-supplied context (safe defaults)
+MSG     ?= Telemetry publish
+TAGS    ?= [META:LEDGER]
+PURPOSE ?= Listening Frame sync
+INSIGHT ?= —
+
+# Build-time commit message (assembled from fields)
+define COMMIT_MSG
+$(DATE) — $(VERSION) — $(MSG)
+
+Tags: $(TAGS)
+Purpose: $(PURPOSE)
+Insight: $(INSIGHT)
+endef
+export COMMIT_MSG
+
+# -------- Version bump helpers ------------------------------------
+.PHONY: bump-patch
+bump-patch:
+	@ver="$$(cat $(VERSION_FILE))"; \
+	base="$${ver#v}"; \
+	major="$${base%%.*}"; rest="$${base#*\.}"; \
+	minor="$${rest%%.*}"; patch="$${rest#*\.}"; \
+	new="v$$major.$$minor.$$((patch+1))"; \
+	echo $$new > $(VERSION_FILE); \
+	echo "[ok] bumped version: $$ver -> $$new"
+
+# -------- Template installer (optional QoL) ------------------------
+.PHONY: install-commit-template
+install-commit-template:
+	@test -f .gitmessage || (echo "[info] writing .gitmessage"; printf "%s\n" "\
+# ------------------------------------------------------------\n\
+# Commit Title (short):\n\
+# <DATE> — <VERSION> — <SHORT MESSAGE>\n\
+# \n\
+# Body (details):\n\
+Tags: <TAGS>\n\
+Purpose: <PURPOSE>\n\
+Insight: <INSIGHT>\n\
+# ------------------------------------------------------------" > .gitmessage)
+	git config commit.template .gitmessage
+	@echo "[ok] git commit template installed."
+
+# Fail the publish if tag validation finds unknowns or LaTeX errors occur.
+publish: validate
+	@echo "[info] building PDF…"
+	@$(LATEXMK) -halt-on-error main.tex || { echo "[ERROR] build failed"; exit 1; }
+
+	@echo "[info] staging changes…"
+	@git add -A
+
+	@# Abort if nothing staged (avoid empty commits)
+	@if git diff --cached --quiet; then \
+	  echo "[info] nothing to commit — skipping publish."; \
+	  exit 0; \
+	fi
+
+	@echo "[info] committing…"
+	@printf "%s\n" "$$COMMIT_MSG" | git commit -F -
+
+	@echo "[info] pushing…"
+	@git push
+
+# -------- Convenience: publish + bump next patch -------------------
+.PHONY: publish+next
+publish+next: publish bump-patch
+	@echo "[ok] published and prepped next patch version."
