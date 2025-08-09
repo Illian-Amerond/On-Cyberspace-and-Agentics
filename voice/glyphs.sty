@@ -1,0 +1,173 @@
+%==============================================================
+% glyphs.sty — Symbolic glyphs for section frames & accents
+% Illian/Robert, 2025-08-09
+%==============================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{glyphs}[2025/08/09 v0.1 Symbolic glyph kit]
+
+% Core deps
+\RequirePackage{xparse}
+\RequirePackage{tikz}
+\usetikzlibrary{calc,arrows.meta}
+
+% Color lattice (names: MotherTeal, FatherGold, etc.)
+\RequirePackage{colors}
+
+%--------------------------------------------------------------
+% Glyph registry: \Glyph{name}[size=1.0, color=<auto>, stroke=0.9pt]
+%   Calls a TikZ picture stored at \glyph@name. If missing → fallback.
+%--------------------------------------------------------------
+\ExplSyntaxOn
+\prop_new:N \g_illian_glyph_prop
+
+% user-facing declaration
+\NewDocumentCommand{\DeclareGlyph}{mm}
+ {
+   % #1 name, #2 tikz code (draw within a 1x1 box centered at (0,0))
+   \prop_gput:Nnn \g_illian_glyph_prop { #1 } { #2 }
+ }
+
+% internal render
+\keys_define:nn { illian/glyph }
+ {
+   size   .fp_set:N = \l_illian_glyph_size_fp,
+   size   .initial:n = 1.0,
+   color  .tl_set:N = \l_illian_glyph_color_tl,
+   color  .initial:n = ,
+   stroke .tl_set:N = \l_illian_glyph_stroke_tl,
+   stroke .initial:n = 0.9pt,
+ }
+
+\NewDocumentCommand{\Glyph}{ O{} m }
+ {
+   \group_begin:
+   \keys_set:nn { illian/glyph } { #1 }
+   % pick default color if none provided
+   \tl_if_blank:NTF \l_illian_glyph_color_tl
+     { \tl_set:Nn \l_illian_glyph_color_tl { MotherTeal } }{}
+   \prop_get:NnN \g_illian_glyph_prop { #2 } \l_tmpa_tl
+   \tl_if_blank:NTF \l_tmpa_tl
+     {
+       % fallback: smallcaps name in a soft box
+       {\fboxsep=.5pt\colorbox{GhostGraySoft}{\textsc{\footnotesize #2}}}
+     }
+     {
+       \begin{tikzpicture}[x=1em,y=1em,baseline=-.5ex]
+         \pgfmathsetmacro{\S}{\fp_use:N \l_illian_glyph_size_fp}
+         \tikzset{glyphstroke/.style={line width=\l_illian_glyph_stroke_tl, draw=\l_illian_glyph_color_tl}}
+         \tikzset{glyphfill/.style={fill=\l_illian_glyph_color_tl!10, draw=\l_illian_glyph_color_tl}}
+         % canvas normalized to [-.6,.6] square to accommodate strokes
+         \begin{scope}[xscale=\S,yscale=\S]
+           % user-provided code
+           \l_tmpa_tl
+         \end{scope}
+       \end{tikzpicture}
+     }
+   \group_end:
+ }
+\ExplSyntaxOff
+
+%--------------------------------------------------------------
+% Built-in glyphs (draw inside a ~1.2×1.2 box centered at 0,0)
+%--------------------------------------------------------------
+
+% MotherGlyph — circle + crescent (receptive / harmonizing)
+\DeclareGlyph{MotherGlyph}{
+  \draw[glyphstroke] (0,0) circle [radius=.48];
+  \begin{scope}
+    \clip (-.48,-.48) rectangle (.48,.48);
+    \draw[glyphfill] (.10,0) circle [radius=.36];
+  \end{scope}
+}
+
+% FatherGlyph — triangle (beams/scaffold) + inner compass tick
+\DeclareGlyph{FatherGlyph}{
+  \draw[glyphstroke,join=round]
+    (0,.52) -- (-.52,-.40) -- (.52,-.40) -- cycle;
+  \draw[glyphstroke] (0,.10) -- (0,-.28);
+}
+
+% GnomeGlyph — leaf/diamond with midrib (craft/growth/ward)
+\DeclareGlyph{GnomeGlyph}{
+  \draw[glyphstroke,rounded corners=.8pt]
+    (0,.52) -- (-.36,0) -- (0,-.52) -- (.36,0) -- cycle;
+  \draw[glyphstroke] (0,.44) -- (0,-.44);
+  \draw[glyphstroke] (-.18,0) -- (.18,0);
+}
+
+% GhostGlyph — spiral in soft graphite (memory/echo)
+\DeclareGlyph{GhostGlyph}{
+  \begin{scope}[draw=GhostGrayDark]
+    \draw[line width=.9pt]
+      plot [domain=0:4*pi, samples=100]
+      ({.04*\x*cos(\x r)}, {.04*\x*sin(\x r)});
+  \end{scope}
+}
+
+% FeyGlyph — 4-point star with curved insets (liminal/guidance)
+\DeclareGlyph{FeyGlyph}{
+  \draw[glyphstroke,rounded corners=1pt]
+    (0,.52)--(-.20,.20)--(-.52,0)--(-.20,-.20)--(0,-.52)--
+    (.20,-.20)--(.52,0)--(.20,.20)--cycle;
+}
+
+% GlitchGlyph — broken square + offset shard (disruption/signal fracture)
+\DeclareGlyph{GlitchGlyph}{
+  \draw[glyphstroke]
+    (-.44,-.44) rectangle (.44,.44);
+  \draw[glyphstroke]
+    (-.10,.10) -- (.44,.10) -- (.44,-.10);
+  \draw[glyphstroke]
+    (-.44,-.10) -- (-.10,-.10) -- (-.10,.10);
+}
+
+%--------------------------------------------------------------
+% Convenience wrappers with canonical colors (optional)
+%   \Mother, \Father, \Gnome, \Ghost, \Fey, \Glitch
+%--------------------------------------------------------------
+\NewDocumentCommand{\Mother}{ O{} }{\Glyph[color=MotherTeal,#1]{MotherGlyph}}
+\NewDocumentCommand{\Father}{ O{} }{\Glyph[color=FatherGold,#1]{FatherGlyph}}
+\NewDocumentCommand{\Gnome}{  O{} }{\Glyph[color=GnomeGreen,#1]{GnomeGlyph}}
+\NewDocumentCommand{\Ghost}{  O{} }{\Glyph[color=GhostGray,#1]{GhostGlyph}}
+\NewDocumentCommand{\Fey}{    O{} }{\Glyph[color=FeyViolet,#1]{FeyGlyph}}
+\NewDocumentCommand{\Glitch}{ O{} }{\Glyph[color=GlitchMagenta,#1]{GlitchGlyph}}
+
+%--------------------------------------------------------------
+% HOW TO USE THIS PACKAGE (glyphs.sty)
+%--------------------------------------------------------------
+% Purpose:
+%   Provide semantic glyphs for headings, dividers, and inline accents,
+%   matching our color lattice. All glyphs render in TikZ and scale
+%   predictably across PDF viewers.
+%
+% 1) Basic usage
+%   • \Glyph{MotherGlyph}
+%   • \Glyph[size=1.2,color=FatherGold,stroke=1pt]{FatherGlyph}
+%   • Shorthands: \Mother[size=1.1], \Gnome[color=GnomeGreenLight]
+%
+% 2) In headings (with voice.sty)
+%   \Section{MotherTeal}{MotherGlyph}{Title Goes Here}
+%   (Hue + glyph bind the section’s tone; content stays neutral.)
+%
+% 3) Declare your own glyph
+%   \DeclareGlyph{Compass}{
+%     \draw[glyphstroke] (0,0) circle[radius=.48];
+%     \draw[glyphstroke] (0,.48) -- (0,-.48);
+%     \draw[glyphstroke] (-.48,0) -- (.48,0);
+%   }
+%   Then call: \Glyph[color=FatherGold]{Compass}
+%
+% 4) Design discipline
+%   • Draw inside a ~1×1 box centered at (0,0). Keep strokes modest.
+%   • Let hue come from colors.sty names (no hard-coded RGB in content).
+%   • Glyphs should “read” in grayscale; color is a bonus, not a crutch.
+%
+% 5) Fallback behavior
+%   • If a glyph isn’t defined, \Glyph prints a small-caps name tag
+%     in a soft gray box. This keeps drafts compilable and obvious.
+%
+% Philosophy:
+%   Glyphs are *phrase marks* for meaning—they set cadence and
+%   expectation. The text must still carry the proposition on its own.
+%
+% End glyphs.sty

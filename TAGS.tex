@@ -1,0 +1,94 @@
+% ============================================================
+% TAGS.tex — live tag registry loader (uses TAGS.md)
+% Requires: LuaLaTeX, expl3
+% ============================================================
+\ExplSyntaxOn
+\prop_new:N \g_tags_registry_prop
+\prop_new:N \g_tags_family_prop
+
+% Map headings in TAGS.md to families we print in the PDF
+\prop_gput:Nnn \g_tags_family_prop {Structural} {Structural}
+\prop_gput:Nnn \g_tags_family_prop {Framework}  {Structural}
+\prop_gput:Nnn \g_tags_family_prop {Process}    {Process}
+\prop_gput:Nnn \g_tags_family_prop {Development}{Process}
+\prop_gput:Nnn \g_tags_family_prop {Symbolic}   {Symbolic}
+\prop_gput:Nnn \g_tags_family_prop {Philosophical}{Symbolic}
+\prop_gput:Nnn \g_tags_family_prop {Meta}       {Meta}
+\prop_gput:Nnn \g_tags_family_prop {Operational}{Meta}
+\prop_gput:Nnn \g_tags_family_prop {Seeded Epiphany Matrix}{Epiphany}
+\prop_gput:Nnn \g_tags_family_prop {Epiphany}   {Epiphany}
+
+% --- Lua: parse TAGS.md tables and description lists -----------
+\NewDocumentCommand{\LoadTagsFromMarkdown}{m}
+ {
+  \ior_new:N \l__tags_file_ior
+  \ior_open:Nn \l__tags_file_ior {#1}
+  \bool_new:N \l__tags_in_family_bool
+  \tl_clear_new:N \l__tags_current_family_tl
+  \group_begin:
+  \char_set_catcode_other:N \#
+  \char_set_catcode_other:N \|
+  \char_set_catcode_other:N \[
+  \char_set_catcode_other:N \]
+  \char_set_catcode_other:N \_
+  \int_zero_new:N \l__tags_line_int
+  \ior_map_inline:Nn \l__tags_file_ior
+   {
+     \int_incr:N \l__tags_line_int
+     \tl_set:Nn \l_tmpa_tl {##1}
+     % Detect family headings: lines starting with '## '
+     \regex_if_match:nnTF { ^\s*##\s+(.+) } { \tl_use:N \l_tmpa_tl }
+      {
+        \regex_extract:nnN { ^\s*##\s+(.+) } { \tl_use:N \l_tmpa_tl } \l_tmpa_seq
+        \tl_set:Nx \l__tags_current_family_tl { \seq_item:Nn \l_tmpa_seq {1} }
+      }
+      {
+        % Table row: | TAG | ...
+        \regex_if_match:nnT { ^\|\s*([A-Z][A-Z0-9_]+)\s*\| } { \tl_use:N \l_tmpa_tl }
+         {
+           \regex_extract:nnN { ^\|\s*([A-Z][A-Z0-9_]+)\s*\| } { \tl_use:N \l_tmpa_tl } \l_tmpb_seq
+           \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq {1} }
+           \tl_set:Nx \l_tmpc_tl { \l__tags_current_family_tl }
+           \prop_put_if_new:NVV \g_tags_registry_prop \l_tmpb_tl \l_tmpc_tl
+         }
+        % Description bullet: [TAG]
+        \regex_if_match:nnT { \[([A-Z][A-Z0-9_]+)\] } { \tl_use:N \l_tmpa_tl }
+         {
+           \regex_extract:nnN { \[([A-Z][A-Z0-9_]+)\] } { \tl_use:N \l_tmpa_tl } \l_tmpb_seq
+           \tl_set:Nx \l_tmpb_tl { \seq_item:Nn \l_tmpb_seq {1} }
+           \tl_set:Nx \l_tmpc_tl { \l__tags_current_family_tl }
+           \prop_put_if_new:NVV \g_tags_registry_prop \l_tmpb_tl \l_tmpc_tl
+         }
+      }
+   }
+  \group_end:
+  \ior_close:N \l__tags_file_ior
+ }
+
+% Query helpers
+\cs_new:Npn \tags_family_of:n #1
+ {
+   \prop_item:Nn \g_tags_registry_prop {#1}
+ }
+
+% --- Public macro: \Tag[<LAYER>]{<NAME>} ----------------------
+\NewDocumentCommand{\Tag}{O{} m}
+ {
+   \tl_set:Nx \l_tmpa_tl { \tl_upper_case:n {#2} }
+   \tl_set:Nx \l_tmpb_tl { \tags_family_of:n { \l_tmpa_tl } }
+   \tl_if_blank:NF \l_tmpb_tl {} % exists
+   \tl_if_blank:TF \l_tmpb_tl
+     { % unknown tag → warn once; still print
+       \PackageWarning{TAGS}{Unknown tag '#2' used; add to TAGS.md?}
+       {\small\textsc{[#1:#2]}}%
+     }
+     { {\small\textsc{[#1:\l_tmpa_tl]}} }
+ }
+
+% --- Optional: print a compact legend from loaded registry ----
+\NewDocumentCommand{\PrintTagLegend}{}{
+  \par\medskip\noindent\textbf{Tag Legend (from TAGS.md).}\par
+  \prop_map_inline:Nn \g_tags_registry_prop
+   { \noindent\texttt{##2}:\quad \textsc{##1}\par }
+}
+\ExplSyntaxOff

@@ -1,0 +1,154 @@
+% =============================================================
+% sections.tex — Content scaffold using Full Voice methodology
+% =============================================================
+
+% ---------- 01. INTRO ---------------------------------------
+\Section{MotherTeal}{MotherGlyph}{On Cyberspace and Agentics}
+
+\begin{SectionHeaderLedger}{On Cyberspace and Agentics}
+\Tag[ONTO]{SEED} 2025-08-09 v1.0.4 — Declared scope and Core terms in lexicon.
+\Tag[EPI]{FLOW}  2025-08-09 v1.0.4 — Set epiphany beat: orient → inhabit → integrate.
+\end{SectionHeaderLedger}
+
+\VoicePara{perspectival}
+\i{We invite the reader to inhabit a navigable cyberspace}. The work braids \key{ontology} (what is), \key{epistemology} (how we come to know), and \key{participation} (how we act together) into a single voice.
+
+\VoicePara{propositional}
+We define \key{cyberspace} as a governed, traversable manifold in which \key{agents} enact policies with legible context, identity, and consent. Our \key{agentics} frame specifies resonance, drift, and ward operators that stabilize interaction.
+
+\begin{callout}[Thesis]{GnomeGreen}
+\i{Design aim}: a symbolic lattice that reads like a myth and evaluates like a model.
+\end{callout}
+
+\begin{SectionFooterLedger}
+\Tag[ONTO]{ARC}   2025-08-09 v1.0.4 — Opened “Foundations → Architecture → Praxis” arc.
+\Tag[EPI]{LIGHT} 2025-08-09 v1.0.4 — Clarified reader stance with dual-layer voice cues.
+\end{SectionFooterLedger}
+
+
+% ---------- 02. FOUNDATIONS ---------------------------------
+\Section{FatherGold}{FatherGlyph}{Foundations: Spaces, Agents, Resonance}
+
+\begin{SectionHeaderLedger}{Foundations}
+\Tag[ONTO]{CORE}  2025-08-09 v1.0.4 — Introduced Golden Core primitives \Res,\Drift,\Ward.
+\Tag[EPI]{BIND}   2025-08-09 v1.0.4 — Bound math operators to narrative semantics.
+\end{SectionHeaderLedger}
+
+\subsection*{Spaces and Agents}
+Let $\Man$ denote the ambient manifold; agents occupy trajectories $\gamma : \R \to \Man$ with policies $\pi$ over observations $o_t$ and contexts $c_t$.
+
+\subsection*{Resonance and Drift}
+We write the resonance of signal $x$ to context $c$ as $\Res(x;c)$ and the drift as $\Drift(x;c)$. A ward $\Ward(\cdot)$ constrains dynamics to reduce unwanted drift.
+
+\VoicePara{propositional}
+A minimal stability condition is
+\[
+\Ex[\P]{\Res(x;c)} - \lambda\,\Ex[\P]{\Drift(x;c)} \ge 0,
+\]
+with $\lambda \ge 0$ tuned per governance tier.
+
+\begin{callout}[Notation]{GnomeGreen}
+Use $\indicator{A}$ for indicators and \ip*{\,\cdot\,}{\,\cdot\,} for pairings; rely on \i{macros} rather than hard-coded symbols.
+\end{callout}
+
+\begin{SectionFooterLedger}
+\Tag[ONTO]{LATTICE} 2025-08-09 v1.0.4 — Established operator lattice and spaces \Man,\Core.
+\Tag[EPI]{REFRACT}  2025-08-09 v1.0.4 — Reframed drift from error to \i{contextual misalignment}.
+\end{SectionFooterLedger}
+
+
+% ---------- 03. ARCHITECTURE --------------------------------
+\Section{FatherInMother}{GnomeGlyph}{Architecture: Voice, Wards, and Glyphics}
+
+\begin{SectionHeaderLedger}{Architecture}
+\Tag[ONTO]{GLYPH} 2025-08-09 v1.0.4 — Mother/Father/Gnome glyph set with blends (colors.sty).
+\Tag[EPI]{FLOW}  2025-08-09 v1.0.4 — Heading tone set by hue; cadence by \VoicePara{} cues.
+\end{SectionHeaderLedger}
+
+\VoicePara{participatory}
+We surface governance through \i{wards}:
+\[
+x' \gets \Fuse\!\big(x,\, \Ward(x;c)\big), \qquad
+\Ward(x;c) = \argmin_{w \in \mathcal{W}} \big( \Drift(x\! \parallel\! w;c) - \alpha\,\Res(w;c) \big).
+\]
+
+\begin{callout}[Design Motif]{GnomeGreen}
+Headings use \Section\ to bind hue and glyph; emphasis uses \i,\b,\ib; key terms use \key.
+\end{callout}
+
+\begin{SectionFooterLedger}
+\Tag[ONTO]{BOND}  2025-08-09 v1.0.4 — Bonded wards to callouts for consistent affordances.
+\Tag[EPI]{TEMPER} 2025-08-09 v1.0.4 — Tempered visual density; improved scan path.
+\end{SectionFooterLedger}
+
+
+% ---------- 04. EXPERIMENTS ---------------------------------
+\Section{GnomeGreen}{GnomeGlyph}{Experiments: Stability without In-Loop LLMs}
+
+\begin{SectionHeaderLedger}{Experiments}
+\Tag[ONTO]{TEST}  2025-08-09 v1.0.4 — Logged protocol and seeds for reproducibility.
+\Tag[EPI]{FIRE}  2025-08-09 v1.0.4 — Marked proving ground for resonance metrics.
+\end{SectionHeaderLedger}
+
+\VoicePara{propositional}
+Given datasets $\{(x_i, c_i)\}_{i=1}^n$, we evaluate stability by
+\[
+S = \frac{1}{n}\sum_{i=1}^n \Big[\Res(x_i;c_i) - \lambda\,\Drift(x_i;c_i)\Big],
+\quad
+\text{with }\lambda \text{ chosen by } \argmax_{\lambda \ge 0}\, \Prb{}{S \ge \tau}.
+\]
+
+\begin{callout}[Outcome]{GnomeGreen}
+Empirically, stability held \i{without} in-loop LLMs under warded policies; see Appendix for ablations.
+\end{callout}
+
+\begin{SectionFooterLedger}
+\Tag[ONTO]{MAP}   2025-08-09 v1.0.4 — Added fig. of policy-phase transitions.
+\Tag[EPI]{ANCHOR} 2025-08-09 v1.0.4 — Anchored $\lambda$ selection to governance tiers.
+\end{SectionFooterLedger}
+
+
+% ---------- 05. GOVERNANCE & COMMONS ------------------------
+\Section{MotherTeal}{FeyGlyph}{Governance and the Commons}
+
+\begin{SectionHeaderLedger}{Governance}
+\Tag[ONTO]{GATE}  2025-08-09 v1.0.4 — Defined consent gates and audit trails.
+\Tag[EPI]{LIGHT} 2025-08-09 v1.0.4 — Clarified reader journey: rights → roles → rituals.
+\end{SectionHeaderLedger}
+
+\VoicePara{perspectival}
+In the commons, \i{belonging precedes throughput}. We formalize admission by an indicator policy
+\[
+\indicator*{ \text{context complete} \;\wedge\; \text{rights affirmed} }.
+\]
+
+\begin{callout}[Ward Posture]{GnomeGreen}
+Ghost wards for memory hygiene; Fey wards for guidance; Glitch wards for adversarial fractures.
+\end{callout}
+
+\begin{SectionFooterLedger}
+\Tag[ONTO]{KEY}   2025-08-09 v1.0.4 — Published interpretive keys for reader orientation.
+\Tag[EPI]{SHDW}  2025-08-09 v1.0.4 — Integrated shadow notes on bias and drift sources.
+\end{SectionFooterLedger}
+
+
+% ---------- 06. CONCLUSION ----------------------------------
+\Section{FatherGold}{MotherGlyph}{Conclusion: Golden Core Integration}
+
+\begin{SectionHeaderLedger}{Conclusion}
+\Tag[ONTO]{CORE}        2025-08-09 v1.0.4 — Consolidated Core operators and glossary.
+\Tag[EPI]{ARC_CLIMAX}   2025-08-09 v1.0.4 — Set epiphany beat: synthesis across arcs.
+\end{SectionHeaderLedger}
+
+\VoicePara{participatory}
+\i{We return to the well}: architecture, governance, and craft cohere; drift is bounded by resonance; the commons remains inhabitable.
+
+\begin{SectionFooterLedger}
+\Tag[ONTO]{ARCHIVE} 2025-08-09 v1.0.4 — Snapshot for v1.0.4; ready for external review.
+\Tag[EPI]{GOLD}    2025-08-09 v1.0.4 — Golden moment: layered voices speak as one.
+\end{SectionFooterLedger}
+
+% ----------------- Appendix pointers (optional) --------------
+% \appendix
+% \Section{GhostGray}{GhostGlyph}{Appendix: Protocols and Ablations}
+% (include figures, tables, and extended math here)

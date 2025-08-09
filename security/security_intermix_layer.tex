@@ -1,0 +1,187 @@
+% ===========================
+% security_intermix_layer.tex
+% Base toggles, private blocks, watermarks, helpers
+% Engine: LuaLaTeX
+% ===========================
+
+% Core tools
+\RequirePackage{expl3,xparse}
+\RequirePackage{ifthen}
+\RequirePackage{comment}      % robustly hides big chunks (even unicode/emoji)
+\RequirePackage{etoolbox}
+
+% Optional visuals (safe to omit if you want this ultra-lean)
+\RequirePackage[skins,breakable]{tcolorbox}
+\RequirePackage{tikzpagenodes}
+\RequirePackage{graphicx}
+
+security/
+  RECON_WARD.tex
+  Shenanigans.tex
+  ORDER_OF_ILLIAN.tex
+  LICENSE_CC_NC_ND_NR_Int4.tex
+
+% ---------- Build Profiles ----------
+% \BuildSetup{profile=dev} or {profile=release}
+\ExplSyntaxOn
+\cs_new_eq:NN \gnome_use_i:nn \use_i:nn
+\cs_new_eq:NN \gnome_use_ii:nn \use_ii:nn
+\cs_new_eq:NN \gnome_use_none:nn \use_none:nn
+
+\keys_define:nn { gnome/build }
+  {
+    profile .choice:,
+    profile / dev      .code:n = { \cs_set_eq:NN \gnomeIfDevTF \gnome_use_ii:nn },
+    profile / release  .code:n = { \cs_set_eq:NN \gnomeIfDevTF \gnome_use_i:nn },
+    profile .initial:n = dev,
+  }
+\NewDocumentCommand{\BuildSetup}{ m }{\keys_set:nn{gnome/build}{#1}}
+
+% Convenience wrappers
+\NewDocumentCommand{\DevOnly}{ m }{\gnomeIfDevTF{}{#1}}        % hidden in release
+\NewDocumentCommand{\ReleaseOnly}{ m }{\gnomeIfDevTF{#1}{}}     % hidden in dev
+\ExplSyntaxOff
+
+% ---------- Feature Toggles ----------
+% Flip these from your main, anytime:
+\newif\ifsecurityblock   \securityblockfalse   % security/hidden blocks visible?
+\newif\ifcollector       \collectorfalse       % collector's edition extras?
+\newif\ifwatermark       \watermarkfalse       % page watermark on?
+
+% ---------- Watermark (chapter seal) ----------
+% Put a PDF/PNG at graphics/ObsidianSeal.pdf or change path below.
+\AddToHook{shipout/background}{%
+  \ifwatermark
+    \begin{tikzpicture}[remember picture,overlay]
+      \node[opacity=0.06] at (current page.center)
+        {\includegraphics[width=0.6\paperwidth]{graphics/ObsidianSeal.pdf}};
+    \end{tikzpicture}%
+  \fi
+}
+
+% ---------- Gnome Subordinate Chunk ----------
+% Uniform subordinate section with TOC line
+\NewDocumentEnvironment{gnomechunk}{m m} % title, shorttoc
+{
+  \section*{#1}
+  \addcontentsline{toc}{section}{#2}
+}{}
+
+% ---------- Private / Security Blocks ----------
+% 1) Named conditional block you can flip globally
+\NewDocumentEnvironment{securityblock}{}%
+{ \ifsecurityblock }{ \fi }
+
+% 2) Comment environment (absolute hide; safest for raw Unicode/emoji/verbatim)
+% Usage:
+% \begin{comment}
+%   ... private payload ...
+% \end{comment}
+
+% 3) Collector-only showcase
+\NewDocumentEnvironment{collectorblock}{}%
+{ \ifcollector }{ \fi }
+
+% 4) Dev notes (visible only in dev profile)
+\NewDocumentEnvironment{devnote}{ O{Dev Note} }
+{ \DevOnly{\begin{tcolorbox}[enhanced,breakable,colback=yellow!3,colframe=yellow!50!black,boxrule=0.5pt,title={#1}]}}
+{ \DevOnly{\end{tcolorbox}} }
+
+% 5) General private block API
+%    type: security|collector|comment|dev
+%    title: optional caption
+\ExplSyntaxOn
+\cs_new_protected:Npn \gnome_private_begin:nn #1 #2
+  {
+    \str_case:nnF {#1}
+    {
+      {security}{ \ifsecurityblock \begin{tcolorbox}[enhanced,breakable,colback=black!2,colframe=black!40,boxrule=0.5pt,title={#2}] }
+      {collector}{ \ifcollector \begin{tcolorbox}[enhanced,breakable,colback=black!2,colframe=black!40,boxrule=0.5pt,title={#2}] }
+      {dev}{ \gnomeIfDevTF{}{ \begin{tcolorbox}[enhanced,breakable,colback=yellow!3,colframe=yellow!50!black,boxrule=0.5pt,title={#2}] } }
+      {comment}{ \begin{comment} }
+    }
+    { % default fallback: hide with comment
+      \begin{comment}
+    }
+  }
+
+\cs_new_protected:Npn \gnome_private_end:n #1
+  {
+    \str_case:nnF {#1}
+    {
+      {security}{ \end{tcolorbox}\fi }
+      {collector}{ \end{tcolorbox}\fi }
+      {dev}{ \end{tcolorbox} }
+      {comment}{ \end{comment} }
+    }
+    { \end{comment} }
+  }
+\ExplSyntaxOff
+
+\NewDocumentEnvironment{PrivateBlock}{ O{security} O{} }% [type][title]
+{ \gnome_private_begin:nn {#1} {#2} }{ \gnome_private_end:n {#1} }
+
+% ---------- Resonance Index (lightweight log) ----------
+\ExplSyntaxOn
+\clist_new:N \g_gnome_resonance_clist
+\NewDocumentCommand{\ResonanceLog}{ m }
+  { \clist_gput_right:Nn \g_gnome_resonance_clist {#1} }
+\NewDocumentCommand{\PrintResonanceIndex}{}{%
+  \section*{Resonance Index}
+  \begin{itemize}
+    \clist_map_inline:Nn \g_gnome_resonance_clist { \item ##1 }
+  \end{itemize}
+}
+\ExplSyntaxOff
+
+% ---------- File existence helper ----------
+\newcommand{\LoadGnomeFile}[2]{%
+  \IfFileExists{#1}{\input{#1}}{\PackageWarning{gnome}{Missing #2 at path: #1}}%
+}
+
+% ---------- Build stamp (Lua) ----------
+\directlua{
+  local stamp = os.date("!%Y-%m-%d %H:%M:%S UTC")
+  tex.sprint("\\newcommand\\buildstamp{"..stamp.."}")
+}
+
+% ---------- Quick “Ritual/Whisper” boxes ----------
+\tcbset{gnomebox/.style={
+  enhanced, breakable, colback=black!2, colframe=black!60,
+  boxrule=0.5pt, arc=2mm, left=6mm, right=6mm, top=3mm, bottom=3mm
+}}
+\NewDocumentEnvironment{ritual}{}{ \begin{tcolorbox}[gnomebox,title=Ritual] }{ \end{tcolorbox} }
+\NewDocumentEnvironment{whisper}{}{ \begin{tcolorbox}[gnomebox,title=Whisper] }{ \end{tcolorbox} }
+
+% ---------- Usage cheatsheet (kept invisible in release) ----------
+\DevOnly{
+\begin{comment}
+Example:
+\BuildSetup{profile=dev}         % or profile=release
+\securityblocktrue               % show security blocks
+\collectorfalse                  % hide collector extras
+\watermarktrue                   % enable watermark
+
+% Private content:
+\begin{PrivateBlock}[security][Vault License]
+  (ascii/emoji banner, license, etc.)
+\end{PrivateBlock}
+
+\begin{PrivateBlock}[collector][Collector's Cut]
+  (special art/page)
+\end{PrivateBlock}
+
+\begin{devnote}[Chapter Health]
+Check missing files with \LoadGnomeFile{path/to/3a}{3a}
+\end{devnote}
+
+% Subordinate section:
+\begin{gnomechunk}{Trust and Tension in Drift}{3e: Trust and Tension in Drift}
+  ... body ...
+\end{gnomechunk}
+
+% Log resonance events:
+\ResonanceLog{[Φᴿ₄₂] — Recursive Bloom → anchor embedded}
+% Later in chapter: \PrintResonanceIndex
+\end{comment}
+}

@@ -1,0 +1,153 @@
+%============================================================%
+% fey.sty — Mother’s Voice (body) + Elven Lore (left margin) %
+%   Glitch-free: Mother italics use internal rainbow only.   %
+%============================================================%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fey}[2025/08/08 v0.9 Mother+Elven layer (no-glitch)]
+
+% ---------- Dependencies
+\RequirePackage{xcolor}
+\RequirePackage{graphicx}   % rotatebox
+\RequirePackage{xparse}
+\RequirePackage{etoolbox}
+\RequirePackage{iftex}
+\RequirePackage{marginfix}  % avoid overlapping marginpars
+
+% ---------- Colors
+\definecolorset{HTML}{}{}{%
+  FeyRed,      D24D57;%
+  FeyOrange,   F39C12;%
+  FeyGold,     C8A200;%
+  FeyGreen,    2E8B57;%
+  FeyTeal,     2AA198;%
+  FeyBlue,     268BD2;%
+  FeyIndigo,   6C71C4;%
+  FeyViolet,   8E44AD%
+}
+\providecolor{MotherGold}{HTML}{C8A200}
+\colorlet{Mother.gold}{MotherGold}
+\providecolor{ElvenSilver}{HTML}{BFC6D0}
+\colorlet{Elven.silver}{ElvenSilver}
+
+% ---------- Typography hooks
+\newcommand*\MotherFace{\rmfamily}
+\providecommand*\ElvenFace{\sffamily} % replaced below if Calligra/Tengwar found
+
+% ---------- Elven note geometry
+\newlength\fey@elvenpad
+\setlength{\fey@elvenpad}{-6pt}  % negative pulls inward from paper edge
+\setlength{\marginparpush}{16pt} % spacing between stacked notes
+
+% Prefer Calligra if available (works on all engines)
+\IfFileExists{calligra.sty}{%
+  \RequirePackage[T1]{fontenc}%
+  \RequirePackage{calligra}%
+  \renewcommand*\ElvenFace{\calligra}%
+  \AtBeginDocument{\PackageInfo{fey}{Elven Lore using Calligra.}}%
+}{}
+
+% If not pdfTeX, prefer Tengwar Annatar when installed (Xe/LuaLaTeX)
+\ifPDFTeX\else
+  \IfFileExists{fontspec.sty}{%
+    \RequirePackage{fontspec}%
+    \IfFontExistsTF{Tengwar Annatar}{%
+      \newfontfamily\ElvenFamily{Tengwar Annatar}[Scale=MatchLowercase]%
+      \renewcommand*\ElvenFace{\ElvenFamily}%
+      \AtBeginDocument{\PackageInfo{fey}{Elven Lore using Tengwar Annatar.}}%
+    }{}%
+  }{}%
+\fi
+
+% Always use LEFT margin (even in oneside docs)
+\AtBeginDocument{\reversemarginpar}
+
+% ---------- Mother italics rainbow (Lua first, TeX fallback)
+\ifLuaTeX
+  \RequirePackage{luacode}
+  \begin{luacode*}
+    local rainbow = {"FeyRed","FeyOrange","FeyGold","FeyGreen","FeyTeal","FeyBlue","FeyIndigo","FeyViolet"}
+    function __fey_rainbow(text)
+      local i, out = 0, {}
+      for ch in text:gmatch(utf8.charpattern) do
+        if ch == " " then
+          table.insert(out, " ")
+        else
+          i = i + 1
+          if i > #rainbow then i = 1 end
+          table.insert(out, string.format("{\\color{%s}%s}", rainbow[i], ch))
+        end
+      end
+      tex.sprint(table.concat(out))
+    end
+  \end{luacode*}
+  \NewDocumentCommand{\feyRainbow}{m}{\directlua{__fey_rainbow("\luaescapestring{#1}")}}
+\else
+  % Simple, portable fallback: tint whole phrase (keeps spacing; no per-letter rainbow)
+  \NewDocumentCommand{\feyRainbow}{m}{\textcolor{FeyIndigo}{#1}}
+\fi
+
+% ---------- Public macros
+\NewDocumentCommand{\MotherBold}{m}
+  {{\MotherFace\textbf{\textcolor{Mother.gold}{#1}}}}
+
+% Unified \fey{<mode>}{string}  (i = Mother italics, e = Elven left margin)
+\ExplSyntaxOn
+\NewDocumentCommand{\fey}{ m m }
+  {
+    \str_case:nnF {#1}
+      {
+        {i}{\fey_do_motheritalic:n {#2}}
+        {e}{\fey_do_elven_left:n {#2}}
+      }
+      { \PackageError{fey}{Unknown mode `#1' for \string\fey}
+        {Use `i' (italics) or `e' (Elven left margin).} }
+  }
+\ExplSyntaxOff
+
+% Mother's italics (space-safe, engine-aware)
+\ExplSyntaxOn
+\cs_new_protected:Npn \fey_do_motheritalic:n #1
+  { {\MotherFace\textit{\feyRainbow{#1}}} }
+\ExplSyntaxOff
+
+% ---------- Elven note styling (upright + medium only)
+\newcommand*\feyElvenStyle[1]{%
+  {\normalfont \ElvenFace \mdseries \upshape
+   \footnotesize \textcolor{Elven.silver}{#1}}%
+}
+
+% Rotate + wrap inside margin width
+\newcommand*\fey@rotbox[1]{%
+  \rotatebox{90}{%
+    \hspace*{\fey@elvenpad}%
+    \parbox{\marginparwidth}{\raggedright \feyElvenStyle{#1}}%
+  }%
+}
+
+% Single margin note per call (clean wrap, left margin)
+\ExplSyntaxOn
+\cs_set_protected:Npn \fey_do_elven_left:n #1
+  {
+    \begingroup
+      % sanitize style switches inside the note
+      \let\itshape\upshape   \let\slshape\upshape
+      \let\bfseries\mdseries \let\textit\textup
+      \let\emph\textup       \let\textbf\textnormal
+      \marginpar[\raggedright\fey@rotbox{#1}]%
+                {\raggedright\fey@rotbox{#1}}%
+    \endgroup
+  }
+\ExplSyntaxOff
+
+
+% ---------- Aliases
+\NewDocumentCommand{\ElvenLore}{m}{\fey{e}{#1}}
+\NewDocumentCommand{\MotherInflect}{m}{\fey{i}{#1}}
+
+% ---------- One-time info
+\newif\iffey@leftwarn \fey@leftwarnfalse
+\pretocmd{\ElvenLore}{\iffey@leftwarn\relax\else
+  \PackageInfo{fey}{ElvenLore is restricted to LEFT margin (bottom->top).}%
+  \global\fey@leftwarntrue\fi}{}{}
+
+% ================== End of fey.sty =========================%

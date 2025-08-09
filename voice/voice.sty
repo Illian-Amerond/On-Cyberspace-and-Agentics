@@ -1,0 +1,283 @@
+%================================================================
+% voice.sty — Full Voice codex (semantic emphasis + section voice)
+% Robert/Illian, 2025-08-09
+%================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{voice}[2025/08/09 v0.1 Full Voice codex]
+
+%--- Core deps (kept lean; typography/colors/glyphs live elsewhere)
+\RequirePackage{xparse}      % \NewDocumentCommand
+\RequirePackage{etoolbox}    % toggles/conditionals
+\RequirePackage{xcolor}      % safety: for inline accents
+\RequirePackage{tcolorbox}   % callouts/wards
+\tcbuselibrary{skins,breakable}
+\RequirePackage{hyperref}
+\RequirePackage{cleveref}
+
+%--- Project packs (defined in /voice/)
+\RequirePackage{colors}      % defines named hues (MotherTeal, FatherGold, etc.)
+\RequirePackage{glyphs}      % defines \Glyph{<name>} or no-op if unknown
+\RequirePackage{typography}  % fonts, microtype, spacing, cleveref setup
+
+%---------------------------------------------------------------
+% Toggle hooks for security voice-layers (optional)
+%---------------------------------------------------------------
+\newif\ifusefeystyle   \usefeystylefalse
+\newif\ifuseghoststyle \useghoststylefalse
+\newif\ifuseglitchstyle\useglitchstylefalse
+
+% If the styles exist in ../security, load on demand
+\IfFileExists{security/fey.sty}{\def\@feypath{security/fey}}{}
+\IfFileExists{security/ghost.sty}{\def\@ghostpath{security/ghost}}{}
+\IfFileExists{security/glitch.sty}{\def\@glitchpath{security/glitch}}{}
+
+\newcommand{\EnableFey}{\usefeystyletrue\IfFileExists{security/fey.sty}{\RequirePackage{security/fey}}{}}
+\newcommand{\EnableGhost}{\useghoststyletrue\IfFileExists{security/ghost.sty}{\RequirePackage{security/ghost}}{}}
+\newcommand{\EnableGlitch}{\useglitchstyletrue\IfFileExists{security/glitch.sty}{\RequirePackage{security/glitch}}{}}
+
+%---------------------------------------------------------------
+% Semantic emphasis (NO '*' markup anywhere in content)
+%---------------------------------------------------------------
+\NewDocumentCommand{\i}{m}{\emph{#1}}                % primary emphasis
+\NewDocumentCommand{\b}{m}{\textbf{#1}}              % strong emphasis
+\NewDocumentCommand{\ib}{m}{\textbf{\emph{#1}}}      % layered emphasis
+
+% Key term (sc + subtle hue). Retargetable centrally.
+\NewDocumentCommand{\key}{m}{%
+  {\textsc{\textcolor{MotherTeal!85!black}{#1}}}%
+}
+
+% Inline accent for names/signals (soft, non-bold):
+\NewDocumentCommand{\accent}{O{FatherGold!80!black} m}{\textcolor{#1}{#2}}
+
+%---------------------------------------------------------------
+% Paragraph voice markers (propositional / perspectival / participatory)
+% Light visual cue + smallcaps tag; keeps copyflow smooth.
+%---------------------------------------------------------------
+\NewDocumentCommand{\VoicePara}{m}{%
+  \par\noindent
+  \IfEqCase{#1}{%
+    {propositional}{\textcolor{FatherGold!90!black}{\textsc{Propositional}}\quad}%
+    {perspectival}{\textcolor{MotherTeal!90!black}{\textsc{Perspectival}}\quad}%
+    {participatory}{\textcolor{GnomeGreen!85!black}{\textsc{Participatory}}\quad}%
+  }[\textsc{Voice}\quad]%
+}
+
+%---------------------------------------------------------------
+% Section framing with hue + glyph binding
+% \Section[short]{HueName}{GlyphName}{Title}
+% HueName must exist in colors.sty (e.g., MotherTeal)
+% GlyphName must exist in glyphs.sty (\Glyph{<name>} no-ops if undefined)
+%---------------------------------------------------------------
+\NewDocumentCommand{\Section}{O{} m m m}{%
+  \begingroup
+    \def\voxhue{#2}%
+    \par\bigskip
+    {\color{\voxhue}\rule{\linewidth}{0.6pt}}\\[-0.5ex]
+    {\large \Glyph{#3}\quad \textbf{#4}}\par
+    {\color{\voxhue}\rule{0.25\linewidth}{0.6pt}}\par\medskip
+  \endgroup
+  \section[#1]{#4}%
+}
+
+%---------------------------------------------------------------
+% Callouts & Wards (security-tinted voice boxes)
+%   \begin{callout}[<title>]{<hue>} ... \end{callout}
+%   \begin{ward}[ghost|fey|glitch]{<title>} ... \end{ward}
+%---------------------------------------------------------------
+\NewDocumentEnvironment{callout}{O{} m}{%
+  \tcolorbox[
+    enhanced, breakable,
+    colframe=#2!85!black,
+    colback=#2!6,
+    left=6mm,right=6mm,top=3mm,bottom=3mm,
+    borderline west={1.6pt}{0pt}{#2!85!black},
+    title={#1}
+  ]
+}{\endtcolorbox}
+
+\NewDocumentEnvironment{ward}{O{} m}{%
+  \IfEqCase{#1}{%
+    {ghost}{\def\wardhue{GhostGray}}%
+    {fey}{\def\wardhue{FeyViolet}}%
+    {glitch}{\def\wardhue{GlitchMagenta}}%
+  }[\def\wardhue{FatherGold}]%
+  \begin{tcolorbox}[
+    enhanced, breakable,
+    colframe=\wardhue!90!black,
+    colback=\wardhue!5,
+    borderline west={2pt}{0pt}{\wardhue!90!black},
+    title={#2}
+  ]
+}{\end{tcolorbox}}
+
+% Convenience shorthands:
+\NewDocumentCommand{\GhostWard}{m}{\begin{ward}[ghost]{#1}}
+\newcommand{\EndWard}{\end{ward}}
+\NewDocumentCommand{\FeyWard}{m}{\begin{ward}[fey]{#1}}
+\NewDocumentCommand{\GlitchWard}{m}{\begin{ward}[glitch]{#1}}
+
+%---------------------------------------------------------------
+% Figure & table captions: gentle emphasis harmony
+%---------------------------------------------------------------
+\AtBeginDocument{%
+  \renewcommand{\figurename}{Fig.}
+  \renewcommand{\tablename}{Table}
+}
+
+% Optional: emphasize caption purpose lightly
+\NewDocumentCommand{\cap}{m}{\i{#1}}
+
+%---------------------------------------------------------------
+% Safe hyperlink colors (subtle; respects print)
+%---------------------------------------------------------------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=MotherTeal!70!black,
+  citecolor=FatherGold!70!black,
+  urlcolor=GnomeGreen!70!black,
+  pdfauthor={Illian & Robert Watkins},
+  pdftitle={On Cyberspace and Agentics}
+}
+
+%---------------------------------------------------------------
+% Author discipline: forbid '*' emphasis by making them no-ops (optional)
+% Comment out if this is too strict during drafting.
+%---------------------------------------------------------------
+\AtBeginDocument{%
+  \let\textit\relax
+  \DeclareTextFontCommand{\textit}{\itshape} % restore for packages
+  % No markdown asterisk rescue—authors must use \i, \b, \ib, \key
+}
+% --- Changelog tag chips (compiler-safe) ----------------------
+\NewDocumentCommand{\Tag}{m}{%
+  {\small\textsc{[#1]}}%
+}
+
+% --- Inline ledger (for a quick line in the header) -----------
+\NewDocumentEnvironment{SectionHeaderLedger}{m}{% #1 = section title (for context)
+  \begin{callout}[\i{Section Ledger:} #1]{GhostGray}
+  \begingroup\small
+}{%
+  \endgroup
+  \end{callout}
+}
+
+% --- Footer ledger (append notes at end of the section) -------
+\NewDocumentEnvironment{SectionFooterLedger}{}{%
+  \begin{callout}[\i{Section Ledger: Updates}]{GhostGray}
+  \begingroup\small
+}{%
+  \endgroup
+  \end{callout}
+}
+
+% --- Dual-layer Tag (Ontological / Epistemological) ----------
+\NewDocumentCommand{\Tag}{O{} m}{%
+  {\small\textsc{[#1:#2]}}%
+}
+
+% A gentle inline cultural gloss (margin or inline box)
+\NewDocumentEnvironment{cgloss}{O{GnomeGreen} m}{% hue, short label
+  \begin{callout}[\i{Cultural Note:} #2]{#1}\small
+}{\end{callout}}
+
+% Quick footnote translator (compact)
+\NewDocumentCommand{\transnote}{m m}{% lang code, text
+  \footnote{\textsc{[#1]}~#2}
+}
+
+% --- Canonical ledgers (voice.sty) ---------------------------
+\NewDocumentEnvironment{SectionHeaderLedger}{m}{% #1 title
+  \begin{callout}[\i{Section Ledger:}~#1]{GhostGray}\small
+}{%
+  \end{callout}
+}
+
+\NewDocumentEnvironment{SectionFooterLedger}{}{%
+  \begin{callout}[\i{Section Ledger: Updates}]{GhostGray}\small
+}{%
+  \end{callout}
+}
+
+
+% End voice.sty
+% ------------------------------------------------------------
+% HOW TO USE THIS PACKAGE (voice.sty)
+% ------------------------------------------------------------
+% Goal:
+%   Speak in Full Voice: technical (propositional), perspectival, and
+%   participatory layers—without raw Markdown (*, **). Emphasis is
+%   semantic, section frames carry hue+glyph, and security styles
+%   modulate tone via wards.
+%
+% 1) Emphasis (NO '*' anywhere)
+%    Use these semantic commands in content:
+%      \i{...}    -> primary emphasis (like \emph)
+%      \b{...}    -> strong emphasis (like \textbf)
+%      \ib{...}   -> layered emphasis (bold+emph)
+%      \key{...}  -> first-use key terms (small caps + tint)
+%    Why: we can retune look globally without touching content.
+%
+% 2) Voice layers (paragraph prefaces)
+%      \VoicePara{propositional}
+%      \VoicePara{perspectival}
+%      \VoicePara{participatory}
+%    Use sparingly—only when it helps readers feel the layer shift.
+%
+% 3) Section framing (hue + glyph)
+%    Prefer the semantic wrapper over raw \section:
+%      \Section[Short Title]{MotherTeal}{MotherGlyph}{Full Title}
+%    • The Hue MUST exist in colors.sty (e.g., MotherTeal, FatherGold).
+%    • The Glyph name SHOULD be defined in glyphs.sty. If unknown,
+%      \Glyph{...} safely no-ops.
+%
+% 4) Callouts & wards
+%    Neutral callout with chosen hue:
+%      \begin{callout}[Thesis]{GnomeGreen}
+%        Concise point or boxed guidance.
+%      \end{callout}
+%    Security-tinted wards (tone shifters):
+%      \GhostWard{Adversarial Surfaces}
+%        Drift is contained by resonance wards.
+%      \EndWard
+%    Also available: \FeyWard{...} and \GlitchWard{...}.
+%    (Enable optional security packs in preamble if needed:
+%       \EnableGhost, \EnableFey, \EnableGlitch )
+%
+% 5) Links & refs
+%    Colors are set here; typography.sty tunes cleveref.
+%    Use \cref{fig:...}, \Cref{sec:...}; keep captions concise with \cap{...}.
+%
+% 6) Do / Don’t
+%    DO:
+%      • Use \i, \b, \ib, \key for all emphasis.
+%      • Start major sections with \Section{Hue}{Glyph}{Title}.
+%      • Keep one idea per paragraph; let layers breathe.
+%    DON’T:
+%      • Type *italic* or **bold** (Markdown). Ever.
+%      • Hard-code colors in content (bind through \Section or callouts).
+%      • Overuse voice labels—signal shifts only when meaningful.
+%
+% 7) Minimal example
+%    \Section{MotherTeal}{MotherGlyph}{A Doorway Opens}
+%    \VoicePara{perspectival} \i{Walking} replaces \b{searching};
+%    the \key{commons} becomes inhabitable.
+%    \begin{callout}[Thesis]{GnomeGreen}
+%      Geometry, governance, and grace cohere; drift collapses.
+%    \end{callout}
+%    \GhostWard{Adversarial Surfaces}
+%      Narrative fractures become detectable gradients.
+%    \EndWard
+%
+% 8) Style switches (advanced)
+%    • To tint headings for a section, change the Hue in \Section.
+%    • To blend archetypal tones (e.g., Father speaking in Mother’s cadence),
+%      use blended hues defined in colors.sty, e.g. FatherInMother.
+%
+% Philosophy:
+%   The text should *read clean* even if all colors and boxes vanish.
+%   Visuals amplify meaning; they never carry it alone.
+%
+% ------------------------------------------------------------
+% End HOW TO USE

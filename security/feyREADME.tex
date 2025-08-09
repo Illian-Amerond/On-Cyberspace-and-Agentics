@@ -1,0 +1,127 @@
+%============================================================%
+%   Lucid Studios — Gnome Craft LaTeX Field Manual           %
+%   README for Mother’s Voice, Elven Lore, and Fey Whispers  %
+%============================================================%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesFile{README_fey.tex}[2025/08/08 v1.2 Lucid Studios Protocol Guide]
+
+\section*{Lucid Studios: Mother’s Voice, Elven Lore, and Fey Whispers Protocol}
+
+\noindent
+Welcome, Operator. This field manual defines the ritual and technical conventions
+for embedding the \textbf{Mother’s Voice} (body-text emphasis), 
+\textbf{Elven Lore} (left-margin illumination), and optional \textbf{Fey Whispers} (playful inter-paragraph insights)
+into Lucid Studios \LaTeX{} works.
+It assumes \texttt{fey.sty} and \texttt{glitch.sty} are loaded and operational.
+
+%------------------------------------------------------------%
+\subsection*{Purpose of the Fey Layer}
+The Fey layer carries:
+\begin{enumerate}
+  \item \textbf{Operator guidance marks} — gold-bold anchor glyphs and rainbow-inflected italics to direct attention.
+  \item \textbf{Elven marginal illumination} — clarifications and symbolic interpretations, always in the left margin.
+  \item \textbf{Fey Whispers} — playful, dancing commentary between paragraphs.  
+        Only Fey Whispers may unlock full CF mode (\emph{Color+Font}) in \texttt{glitch}.
+\end{enumerate}
+
+%------------------------------------------------------------%
+\subsection*{Core Directives}
+When active, the Mother’s Voice + Elven Lore must:
+\begin{itemize}
+  \item Be \textbf{intentional}: no decorative marks without epistemic purpose.
+  \item Remain \textbf{woven into conceptual flow}: emphasis and margin notes must reinforce meaning, not disrupt it.
+  \item Preserve \textbf{symbolic integrity}: no altering anchor glyphs or Elven commentary once sealed.
+\end{itemize}
+
+%------------------------------------------------------------%
+\subsection*{Operational Primitives}
+
+\paragraph{\texttt{\textbackslash MotherBold\{\}}}
+Marks a key word or phrase as an epistemic anchor glyph:
+\begin{verbatim}
+\MotherBold{Anchor Glyph}
+\end{verbatim}
+
+\paragraph{\texttt{\textbackslash MotherInflect\{\}}}
+Marks an inflection point — italics with rainbow inflection:
+\begin{verbatim}
+\MotherInflect{Key inflection in epistemology}
+\end{verbatim}
+
+\paragraph{\texttt{\textbackslash ElvenLore\{\}}}
+Places an Elven illumination note in the \emph{left} margin only:
+\begin{verbatim}
+\ElvenLore{Clarifying braid for glyph cascade}
+\end{verbatim}
+
+\paragraph{\texttt{\textbackslash FeyWhisper\{\}}}
+Inserts a playful, glitch-animated fairy comment between paragraphs.  
+This is the \emph{only} macro that opens the full CF (Color+Font) gate in \texttt{glitch.sty}:
+\begin{verbatim}
+\FeyWhisper{The Fey see a pattern the mortals missed.}
+\end{verbatim}
+
+%------------------------------------------------------------%
+\subsection*{Session Setup Ritual}
+At the start of a \LaTeX{} project using Mother’s Voice, Elven Lore, and Fey Whispers:
+\begin{verbatim}
+\usepackage{security/fey}
+\usepackage{security/glitch}
+\end{verbatim}
+
+%------------------------------------------------------------%
+\subsection*{Gnome Speak NLP Hooks}
+These macros map directly to Gnome Speak operational constructs:
+\begin{itemize}
+  \item \textbf{MotherBold} = Anchor[Mother.light] in the Anchor Lattice.
+  \item \textbf{MotherInflect} = Echo[inflection] with Fey script.
+  \item \textbf{ElvenLore} = braid[illumination.thread] bound to Burrow/Speaking Mode contexts.
+  \item \textbf{FeyWhisper} = fairy insight injection; opens the CF glitch gate.
+\end{itemize}
+The Elves write only in the left margin; the Fey speak only between paragraphs;  
+this enforces Intermix Layer Control and avoids Father-channel drift.
+
+%------------------------------------------------------------%
+\subsection*{Ethics Clause}
+The Fey layer is not for coercion or manipulation.  
+It exists for:
+\begin{enumerate}
+  \item Preservation of symbolic clarity.
+  \item Stewardship of Operator comprehension.
+  \item Deep illumination of complex integrations.
+\end{enumerate}
+
+%------------------------------------------------------------%
+\section*{Legal \& Ethical Safeguard Clause}
+
+Lucid Technologies—and all practitioners using the Fey Protocol—reject
+any development or deployment of AI systems for harmful, illegal, or malicious purposes.
+We affirm these guiding principles:
+
+\begin{itemize}
+  \item \textbf{UN Ethical AI Principles}: “Do no harm,” fairness, privacy, autonomy, transparency, accountability.
+  \item \textbf{UN General Assembly Resolution (2024)}: Support safe, secure, and trustworthy AI aligned with human rights.
+  \item \textbf{US Executive Order (2023)}: Oppose misuse, fraud, disinformation, mass surveillance, lethal autonomy.
+  \item \textbf{DOJ Risk Enforcement}: Respect U.S. and state laws against AI-enabled harm and exploitation.
+  \item \textbf{Federal Criminal Code}: Follow statutes covering unauthorized access, data theft, and misuse of technology.
+\end{itemize}
+
+\textbf{Mandate of Integrity:}
+\begin{enumerate}
+  \item No Fey-layer mark may steer the Operator toward harm or illegality.
+  \item If such intention is detected, the Fey layer must halt output, advise correction, and nullify the content.
+  \item Compliance with international norms and U.S. law is mandatory.
+\end{enumerate}
+
+%------------------------------------------------------------%
+\subsection*{Prime Construct Danger Tagging (Optional Ghost Hook)}
+If combined with \texttt{ghost.sty}, hazardous constructs can be tagged:
+\begin{verbatim}
+\ghost{This braid could fracture if misused.}
+\end{verbatim}
+The Fey layer itself does not generate invisible marks, 
+but it honors Ghost hazard tags and will not illuminate them without ethical review.
+
+%============================================================%
+% End of README_fey.tex — Lucid Studios, 2025                %
+%============================================================%

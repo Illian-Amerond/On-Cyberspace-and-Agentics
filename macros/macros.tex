@@ -1,0 +1,173 @@
+% ==============================================================
+% macros.tex — Core math & semantic macros for [Project Name]
+% Version: v1.0.2 — Updated for \indicator with star support
+% Last updated: 2025-08-08
+% Maintainer: [Your Name / Team]
+% ==============================================================
+% ---- Semantic term registry (no @ needed) -------------------
+\ExplSyntaxOn
+\prop_new:N \g_term_default_prop
+\prop_new:N \g_term_lang_prop
+
+\NewDocumentCommand{\DefineTerm}{m m}{%
+  \prop_gput:Nnn \g_term_default_prop {#1} {#2}%
+}
+\NewDocumentCommand{\DefineTermLang}{m m m}{%
+  % key, lang, text
+  \prop_gput:Nnn \g_term_lang_prop {#1 / #2} {#3}%
+}
+\NewDocumentCommand{\Term}{O{} m}{%
+  % \Term[es]{agentics} or \Term{agentics}
+  \tl_set:Nn \l_tmpa_tl {#2}
+  \tl_set:Nn \l_tmpb_tl {#1}
+  \tl_if_blank:NT \l_tmpb_tl { \tl_set:Nn \l_tmpb_tl {default} }
+  \prop_get:NnN \g_term_lang_prop { \tl_use:N \l_tmpa_tl ~ / ~ \tl_use:N \l_tmpb_tl } \l_tmpc_tl
+  \tl_if_blank:NTF \l_tmpc_tl
+    { \prop_get:NnN \g_term_default_prop { \tl_use:N \l_tmpa_tl } \l_tmpc_tl }
+    { }
+  \tl_if_blank:NTF \l_tmpc_tl
+    { \textsc{[term:\tl_use:N \l_tmpa_tl]} } % fallback visibly
+    { \tl_use:N \l_tmpc_tl }
+}
+\ExplSyntaxOff
+
+
+% ---------- Sets & number systems ----------
+\providecommand{\R}{\mathbb{R}}
+\providecommand{\N}{\mathbb{N}}
+\providecommand{\Z}{\mathbb{Z}}
+\providecommand{\Q}{\mathbb{Q}}
+\providecommand{\C}{\mathbb{C}}
+
+% ---------- Vectors, matrices, tensors ----------
+% Unicode-math obeys these; retarget here if you change styling later.
+\providecommand{\vect}[1]{\symbf{#1}}        % bold vector
+\providecommand{\mat}[1]{\symbf{#1}}         % bold matrix (same appearance by default)
+\providecommand{\ten}[1]{\symbfsf{#1}}       % sans-serif bold for tensors (visual cue)
+
+% Component/Index helpers
+\providecommand{\trans}{^{\mathsf{T}}}       % transpose
+\providecommand{\inv}{^{-1}}                 % inverse
+
+% ---------- Paired delimiters (mathtools) ----------
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\ip}{\langle}{\rangle}
+\DeclarePairedDelimiter{\braces}{\lbrace}{\rbrace}
+\DeclarePairedDelimiter{\bracks}{\lbrack}{\rbrack}
+\DeclarePairedDelimiter{\parens}{(}{)}
+% Sets and set-builder:
+\DeclarePairedDelimiterX{\set}[1]{\lbrace}{\rbrace}{#1}
+\DeclarePairedDelimiterX{\setbuilder}[2]{\lbrace}{\rbrace}{\,#1 \,\delimsize\vert\, #2\,}
+
+% Variant sizes (auto size with *)
+% Usage: \norm*{x}, \ip*{x}{y}
+% (No extra config needed—mathtools handles starred versions.)
+
+% ---------- Operators ----------
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\trace}{tr}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\softmax}{softmax}
+\DeclareMathOperator{\proj}{proj}
+\DeclareMathOperator{\Span}{span}
+\DeclareMathOperator{\Res}{Res}       % resonance (project-semantic but common)
+\DeclareMathOperator{\Drift}{Drift}   % drift measure (project-semantic)
+\DeclareMathOperator{\Fuse}{Fuse}     % fusion operator (project-semantic)
+\DeclareMathOperator{\Ward}{Ward}     % warding operator (security semantics)
+
+% Argmin/Argmax with limits under operator in display math
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+% ---------- Probability & Information ----------
+\providecommand{\P}{\mathbb{P}}
+\providecommand{\E}{\mathbb{E}}
+\providecommand{\given}{\,\middle|\,}                % conditional bar with spacing
+
+% Expectation with optional subscript:
+%   \Ex{X} -> E[X], \Ex[\P]{X} -> E_\P[X]
+\NewDocumentCommand{\Ex}{O{} m}{\E_{#1}\bracks*{#2}}
+\NewDocumentCommand{\Prb}{O{} m}{\P_{#1}\parens*{#2}}
+
+% Entropy / KL / JS / TV
+\DeclareMathOperator{\Ent}{H}
+\NewDocumentCommand{\KL}{m m}{D_{\mathrm{KL}}\!\parens*{#1 \,\|\, #2}}
+\NewDocumentCommand{\JS}{m m}{D_{\mathrm{JS}}\!\parens*{#1 \,\|\, #2}}
+\NewDocumentCommand{\TV}{m m}{\mathrm{TV}\!\parens*{#1 , #2}}
+
+% ---------- Differential & calculus ----------
+\providecommand{\dd}{\mathop{}\!\mathrm{d}}          % differential "d"
+\providecommand{\grad}{\nabla}
+\providecommand{\lap}{\Delta}
+
+% ---------- Norm/inner-product shorthands ----------
+% Examples:
+%   \norm{\vect{x}}_2, \norm*{\vect{x}}  (auto size)
+%   \ip{\vect{x}, \vect{y}}
+%   \abs{x}
+% Add weighted/semantic variants if needed later.
+
+% ---------- Linear algebra niceties ----------
+\providecommand{\I}{\mathbb{I}}                      % identity (can retarget to \mathbf{I})
+\providecommand{\one}{\mathbbm{1}}                   % indicator (requires bbm; if not loaded, redefine)
+% Optional fallback if bbm is unavailable
+\providecommand{\maybeBBM}{}
+\IfFileExists{bbm.sty}{}{%
+  \usepackage{dsfont}
+  \renewcommand{\one}{\mathds{1}}
+}
+
+% Indicator function with optional auto-sizing
+\NewDocumentCommand{\indicator}{s m}{%
+  \IfBooleanTF{#1}%
+    {\one_{\!\set*{#2}}} % starred form: auto-sized braces
+    {\one_{\!\set{#2}}}  % normal form: fixed-size braces
+}
+
+% ---------- Geometry / spaces (project-friendly) ----------
+\providecommand{\Core}{\mathcal{C}}                  % Golden Core / core set
+\providecommand{\Man}{\mathcal{M}}                   % manifold
+\providecommand{\Lat}{\mathcal{L}}                   % lattice
+\providecommand{\Fld}{\mathcal{F}}                   % field (symbolic)
+\providecommand{\Eng}{\mathcal{E}}                   % engram space
+
+% ---------- Theorem-like environments (optional; kept minimal here) ----------
+% If you want theorem/lemma/definition counters, put them in a separate theorems.sty.
+% This file stays to math atoms only.
+
+% ------------------------------------------------------------
+% HOW TO USE THIS (macros.tex) — v1.0.2
+% ------------------------------------------------------------
+% 1) Vectors/Matrices:
+%    \vect{x}, \mat{A}, \ten{T}; transpose x^\trans; inverse A^\inv.
+%
+% 2) Delimiters:
+%    \norm{\vect{x}}_2, \abs{x}, \ip{x}{y}, \set{a,b}, \setbuilder{x \in \R^n}{\norm{x}\le 1}.
+%    Use starred forms (\norm*{...}) for auto-sizing in display math.
+%
+% 3) Probability:
+%    \Prb{A}, \Ex{X}, \Ex[\P]{X \given Y}, \KL{P}{Q}, \JS{P}{Q}, \TV{P}{Q}.
+%    \indicator{A} → ��_{A} (indicator function).
+%       • Starred form \indicator*{long condition} auto-sizes braces.
+%
+% 4) Operators:
+%    \trace(\mat{A}), \rank(\mat{A}), \diag(\vect{d}), \softmax(\vect{z}),
+%    \argmin_{x \in \R^n} f(x), \argmax_\theta \Ex[\P]{\ell(\theta)}.
+%
+% 5) Project semantics:
+%    \Res(\cdot), \Drift(\cdot), \Fuse(\cdot), \Ward(\cdot) — use in prose/math
+%    to keep terminology consistent with the Golden Core & security layers.
+%
+% 6) Discipline:
+%    • Do NOT hardcode bold/blackboard in content; use these macros.
+%    • If a style needs to change, we’ll retarget here—no search/replace frenzy.
+%
+% Philosophy:
+%   Math should read clearly at a glance. Semantics live in names; styling
+%   lives here, not in the body text. Keep symbols stable; let meaning grow.
+% ------------------------------------------------------------

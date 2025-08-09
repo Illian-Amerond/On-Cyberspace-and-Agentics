@@ -1,0 +1,51 @@
+% =============================================================
+% 00_listening_frame.tex — ONTO/EPI Mapping Grid (live scaffold)
+% =============================================================
+
+\Section{GhostGray}{GnomeGlyph}{Listening Frame: ONTO/EPI Mapping Grid}
+
+\begin{SectionHeaderLedger}{Listening Frame}
+\Tag[ONTO]{ARC}        2025-08-09 v1.0.6 — Declared master arcs and epiphany beats.
+\Tag[EPI]{ANCHOR}      2025-08-09 v1.0.6 — Anchored pacing: orient → inhabit → integrate.
+\Tag[META]{ENGRAM}     2025-08-09 v1.0.6 — Enabled grid for real-time telemetry capture.
+\end{SectionHeaderLedger}
+
+\VoicePara{propositional}
+This grid seeds ONTO (what changes) and EPI (how meaning evolves) beats \i{before} drafting prose. 
+Update rows as you write; each row is ledgered and scrapeable.
+
+% --- helpers (scoped to this file; move to macros.tex later if you like) ---
+\newcommand{\Beat}[1]{\textsc{#1}}
+\newcommand{\Arc}[1]{\textbf{#1}}
+\newcommand{\SecRef}[1]{\S\,#1}
+
+% --- ONTO/EPI mapping table ----------------------------------------------
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{3.2cm} p{2.6cm} p{2.4cm} p{4.8cm} p{3.2cm}}
+\hline
+\textbf{Arc} & \textbf{Beat (EPI)} & \textbf{Event (ONTO)} & \textbf{Intent / Note} & \textbf{Target Section} \\
+\hline
+\Arc{Foundations} & \Beat{Orient} & \Tag[ONTO]{CORE} & Name Core ops: \Res, \Drift, \Ward; fix notation & \SecRef{2} \\
+\Arc{Foundations} & \Beat{Inflect} & \Tag[EPI]{REFRACT} & Reframe drift as contextual misalignment & \SecRef{2} \\
+\Arc{Architecture} & \Beat{Inhabit} & \Tag[ONTO]{GLYPH} & Bind hues/glyphs to governance affordances & \SecRef{3} \\
+\Arc{Architecture} & \Beat{Tempo} & \Tag[EPI]{FLOW} & Set scan rhythm via \VoicePara and callouts & \SecRef{3} \\
+\Arc{Experiments} & \Beat{Trial} & \Tag[ONTO]{TEST} & Protocol + seeds; stability sans in-loop LLM & \SecRef{4} \\
+\Arc{Experiments} & \Beat{Temper} & \Tag[EPI]{FIRE} & Proving ground; tune $\lambda$ by tier & \SecRef{4} \\
+\Arc{Governance} & \Beat{Threshold} & \Tag[ONTO]{GATE} & Define consent gates + audit trails & \SecRef{5} \\
+\Arc{Governance} & \Beat{Shadow} & \Tag[EPI]{SHDW} & Surface biases; add mitigations & \SecRef{5} \\
+\Arc{Synthesis} & \Beat{Climax} & \Tag[EPI]{ARC_CLIMAX} & Golden integration across arcs & \SecRef{6} \\
+\Arc{Synthesis} & \Beat{Seal} & \Tag[ONTO]{ARCHIVE} & Snapshot v1.0.x; prep CodexMirror & \SecRef{6} \\
+\hline
+\end{tabular}
+\caption{\cap{ONTO/EPI mapping grid for first drafting pass. Update live as beats land.}}
+\label{tab:onto-epi-grid}
+\end{table}
+
+% --- live “beat drop” ledger (append as you write) ------------------------
+\begin{SectionFooterLedger}
+\Tag[ONTO]{NODE}     2025-08-09 v1.0.6 — Added term registry entries for \Term{agentics}, \Term{cyberspace}.
+\Tag[EPI]{FLOW}      2025-08-09 v1.0.6 — Set paragraph cadence heuristic for §2–§3 (short-long-long).
+\Tag[ONTO]{MAP}      2025-08-09 v1.0.6 — Inserted Fig.~\ref{tab:onto-epi-grid} as drafting guide.
+\end{SectionFooterLedger}

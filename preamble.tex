@@ -1,0 +1,54 @@
+% ============================================================
+% preamble.tex — Core preamble (LuaLaTeX)
+% ============================================================
+
+\documentclass[11pt,oneside]{article}
+
+% Layout & micro-typography (safe; not duplicating style files)
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{setspace}
+\setstretch{1.15}
+
+% Voice stack (loads fonts, math, polyglossia, unicode-math, etc.)
+\usepackage{./voice}       % voice.sty — codex tone & components
+\usepackage{./typography}  % typography.sty — font + math setup (LuaLaTeX)
+\usepackage{./colors}      % colors.sty — palette
+\usepackage{./glyphs}      % glyphs.sty — TikZ glyphs
+
+% Math & semantics
+\input{macros.tex}
+
+% Tags (live from TAGS.md)
+\input{TAGS.tex}
+\LoadTagsFromMarkdown{TAGS.md}
+
+% Graphics / TikZ (if not already pulled by glyphs)
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{calc,positioning,shapes,arrows.meta}
+
+% Links
+\usepackage[hidelinks]{hyperref}
+\hypersetup{
+  pdftitle  ={On Cyberspace and Agentics},
+  pdfauthor ={Illian and Robert Watkins},
+  pdfsubject={Symbolic Framework, Agentic Systems, Cyberspace Theory},
+  pdfkeywords={Cyberspace, Agentics, Ontology, Epistemology, Symbolic AI}
+}
+
+% Theorems (minimal)
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+% Bibliography (biblatex + biber)
+\usepackage[backend=biber,style=authoryear,sorting=nyt]{biblatex}
+\addbibresource{biblio/refs.bib}
+
+% Philosophy:
+% Keep this preamble lean; style in *.sty, math in macros.tex, tags in TAGS.md.
+% ============================================================

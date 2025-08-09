@@ -1,0 +1,110 @@
+%==============================================================
+% colors.sty — Semantic hue lattice for Full Voice
+% Robert/Illian, 2025-08-09
+%==============================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{colors}[2025/08/09 v0.1 Full Voice color lattice]
+
+% Core
+\RequirePackage{xcolor} % driver inherits from document (dvipsnames not required)
+
+%--------------------------------------------------------------
+% Semantic anchors (base hues) — chosen for print + screen legibility
+% NOTE: Adjust here; all downstream styles inherit via \colorlet
+%--------------------------------------------------------------
+\definecolor{MotherTeal}{HTML}{147D7E}   % deep teal, calm anchor
+\definecolor{FatherGold}{HTML}{B98900}   % warm gold, directive/structural
+\definecolor{GnomeGreen}{HTML}{2F8F2F}   % living craft, growth & wards
+\definecolor{GhostGray}{HTML}{6E7380}    % soft graphite for 'ghost' channel
+\definecolor{FeyViolet}{HTML}{7A5DAD}    % liminal/enchanted guidance
+\definecolor{GlitchMagenta}{HTML}{C21F7B} % fracture/disruption signal
+
+% Secondary neutrals
+\definecolor{Stone}{HTML}{2B2B2B}        % near-black text on light bg
+\definecolor{Parchment}{HTML}{FAF7F2}    % warm paper-esque background
+\definecolor{Mist}{HTML}{E9EDF1}         % cool light neutral (boxes, rules)
+
+%--------------------------------------------------------------
+% Derived scales — tints/shades you can call by name
+%--------------------------------------------------------------
+\colorlet{MotherTealLight}{MotherTeal!20}
+\colorlet{MotherTealSoft}{MotherTeal!10}
+\colorlet{MotherTealDark}{MotherTeal!80!black}
+
+\colorlet{FatherInMother}{FatherGold!75!MotherTeal}
+\colorlet{MotherInFather}{MotherTeal!75!FatherGold}
+
+
+\colorlet{FatherGoldLight}{FatherGold!25}
+\colorlet{FatherGoldSoft}{FatherGold!12}
+\colorlet{FatherGoldDark}{FatherGold!80!black}
+
+\colorlet{GnomeGreenLight}{GnomeGreen!25}
+\colorlet{GnomeGreenSoft}{GnomeGreen!10}
+\colorlet{GnomeGreenDark}{GnomeGreen!80!black}
+
+\colorlet{GhostGrayLight}{GhostGray!30}
+\colorlet{GhostGraySoft}{GhostGray!12}
+\colorlet{GhostGrayDark}{GhostGray!85!black}
+
+\colorlet{FeyVioletLight}{FeyViolet!25}
+\colorlet{FeyVioletSoft}{FeyViolet!10}
+\colorlet{FeyVioletDark}{FeyViolet!85!black}
+
+\colorlet{GlitchMagentaLight}{GlitchMagenta!25}
+\colorlet{GlitchMagentaSoft}{GlitchMagenta!10}
+\colorlet{GlitchMagentaDark}{GlitchMagenta!85!black}
+
+% Utility accents
+\definecolor{WardRed}{HTML}{B3202A}      % warning/ward boundary
+\definecolor{SkyBlue}{HTML}{3178C6}      % link-ish blue (if needed)
+
+%--------------------------------------------------------------
+% Auto-contrast text helper
+% Usage: \TextOn{<bg color>}{Your text here}
+% Picks Stone (near-black) for light bgs, Parchment for dark bgs.
+% Threshold is simple luminance; tweak if your palette shifts.
+%--------------------------------------------------------------
+\ExplSyntaxOn
+\cs_new_protected:Npn \illian_color_luminance:n #1
+  {
+    % expects model HTML or already defined color name
+    % xcolor can't query directly; approximate via rgb model
+    \begingroup
+      \colorlet{__tmp}{#1}%
+      \convertcolorspec{named}{__tmp}{rgb}{\__r,\__g,\__b}%
+      % WCAG-ish relative luminance (sRGB gamma approx)
+      \fp_set:Nn \l_tmpa_fp { 0.2126*\__r + 0.7152*\__g + 0.0722*\__b }
+      \fp_use:N \l_tmpa_fp
+    \endgroup
+  }
+
+\NewDocumentCommand{\TextOn}{m m}
+ {
+  \begingroup
+   \colorlet{__bg}{#1}%
+   \begingroup
+     \edef\luminance{\illian_color_luminance:n{__bg}}%
+   \endgroup
+   % threshold ~0.55: above = light bg → dark text; below = dark bg → light text
+   \fp_compare:nTF { \luminance > 0.55 }
+     { \color{Stone}\setlength{\fboxsep}{0pt}\colorbox{__bg}{#2} }
+     { \color{Parchment}\setlength{\fboxsep}{0pt}\colorbox{__bg}{#2} }
+  \endgroup
+ }
+\ExplSyntaxOff
+
+%--------------------------------------------------------------
+% Role bindings (for quick, consistent semantics)
+%--------------------------------------------------------------
+\colorlet{RolePrimary}{MotherTeal}
+\colorlet{RoleSecondary}{FatherGold}
+\colorlet{RoleSuccess}{GnomeGreen}
+\colorlet{RoleInfo}{FeyViolet}
+\colorlet{RoleWarn}{WardRed}
+\colorlet{RoleQuiet}{GhostGray}
+
+% Page-level suggestions (optional; call from typography.sty if desired)
+% \pagecolor{Parchment} % uncomment for a soft-paper background in PDFs
+
+% End colors.sty

@@ -1,0 +1,197 @@
+% =========================================================
+% glitch.sty — Safe Glitch Text Renderer (LuaLaTeX only)
+%  - “F is for Fey”: font shuffle (F) only when the fairy gate is open
+%  - \fairy[...]{} and fairyblock helpers for between-paragraph whispers
+% =========================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{glitch}[2025/08/08 v1.3 Safe Glitch Renderer + Fey gate]
+
+\RequirePackage{iftex}
+
+% ---------- Fallback for non-LuaTeX: no-op (just print the text)
+\ifLuaTeX\else
+  \PackageWarning{glitch}{LuaLaTeX required; falling back to plain text.}
+  \RequirePackage{xparse}
+  \DeclareDocumentCommand{\glitch}{m m}{#1}
+  \DeclareDocumentCommand{\glitchmath}{m m}{#1}
+  \DeclareDocumentCommand{\fairy}{O{CF} m}{%
+    \par\vspace{.5\baselineskip}\noindent #2\par\vspace{.25\baselineskip}%
+  }
+  \providecommand*\glitchseed[1]{}
+  \providecommand*\glitchKernRange{-0.06,0.12}
+  \providecommand*\glitchRaiseRange{-0.10,0.20}
+  \providecommand*\glitchSpaceWidth{0.333}
+  \endinput
+\fi
+
+% ---------- Core deps (LuaLaTeX path)
+\RequirePackage{xcolor}
+\RequirePackage{luacode}
+\RequirePackage{fontspec}
+\RequirePackage{xparse}
+
+% ---------- Colors
+\definecolor{glitchRed}{RGB}{255,0,0}
+\definecolor{glitchGreen}{RGB}{0,180,0}
+\definecolor{glitchBlue}{RGB}{0,0,255}
+\definecolor{glitchCyan}{RGB}{0,160,160}
+\definecolor{glitchMagenta}{RGB}{210,0,210}
+\definecolor{glitchYellow}{RGB}{200,150,0}
+\definecolor{glitchWhite}{RGB}{255,255,255}
+\definecolor{glitchBlack}{RGB}{0,0,0}
+
+% ---------- Fonts (TeX Gyre variants ship with TeX Live)
+\newfontfamily\glitchmain{Latin Modern Roman}
+\newfontfamily\glitchaltA{TeX Gyre Termes}
+\newfontfamily\glitchaltB{TeX Gyre Pagella}
+\newfontfamily\glitchaltC{TeX Gyre Heros}
+\newfontfamily\glitchaltD{TeX Gyre Cursor}
+
+% ---------- User-tunable chaos (document may \renewcommand these)
+% em ranges: "min,max"
+\newcommand*\glitchKernRange{-0.06,0.12}
+\newcommand*\glitchRaiseRange{-0.10,0.20}
+\newcommand*\glitchSpaceWidth{0.333} % em
+
+% Optional deterministic runs:
+\newcommand*\glitchseed[1]{\directlua{__glitch_set_seed(tonumber("#1") or os.time())}}
+
+% ---------- Tiny Fey-only CF gate (no expl3; simple & sturdy)
+\newif\ifglitchallowCF
+\glitchallowCFfalse
+
+% ---------- Lua engine
+\begin{luacode*}
+local has_token = (type(token)=="table") and token.get_macro
+
+local function get_macro(name, default)
+  if has_token then
+    local v = token.get_macro(name)
+    if v and v ~= "" then return v end
+  end
+  return default
+end
+
+local function parse_range(s, default_min, default_max)
+  if not s then return default_min, default_max end
+  local a,b = s:match("([%-%d%.]+)%s*,%s*([%-%d%.]+)")
+  a, b = tonumber(a), tonumber(b)
+  if a and b and a <= b then return a, b end
+  return default_min, default_max
+end
+
+local function pick(t) return t[math.random(#t)] end
+
+local colors = {
+  "glitchRed","glitchGreen","glitchBlue","glitchCyan",
+  "glitchMagenta","glitchYellow","glitchWhite","glitchBlack"
+}
+
+local fonts = {
+  "\\glitchmain{}", "\\glitchaltA{}", "\\glitchaltB{}",
+  "\\glitchaltC{}", "\\glitchaltD{}"
+}
+
+-- deterministic seed support
+function __glitch_set_seed(n) math.randomseed(tonumber(n) or os.time()) end
+__glitch_set_seed(os.time())
+
+local function rand_between(minv, maxv)
+  return minv + (maxv - minv) * math.random()
+end
+
+-- apply glitch (allowFontShuffle=false strips 'F' semantics)
+local function glitch(text, mode, allowFontShuffle)
+  local useColor = mode:match("C") ~= nil
+  local useFont  = allowFontShuffle and (mode:match("F") ~= nil)
+
+  -- pull config from TeX
+  local kern_min, kern_max = parse_range(get_macro("glitchKernRange"), -0.06, 0.12)
+  local raise_min, raise_max = parse_range(get_macro("glitchRaiseRange"), -0.10, 0.20)
+  local sp = tonumber(get_macro("glitchSpaceWidth", "0.333")) or 0.333
+
+  local out = {}
+  for char in text:gmatch(utf8.charpattern) do
+    if char == " " then
+      table.insert(out, string.format("\\hspace{%sem}", sp))
+    else
+      local color = useColor and pick(colors) or "black"
+      local font  = useFont  and pick(fonts)  or "\\glitchmain{}"
+      local kern  = string.format("%.3f", rand_between(kern_min,  kern_max))
+      local raise = string.format("%.3f", rand_between(raise_min, raise_max))
+      local piece = string.format(
+        "{\\normalfont\\upshape\\mdseries\\raisebox{%sem}{\\textcolor{%s}{{%s%s}}}\\kern%sem}",
+        raise, color, font, char, kern
+      )
+      table.insert(out, piece)
+    end
+  end
+  return table.concat(out)
+end
+
+function __glitch_print(text, mode, allowFontShuffle)
+  tex.sprint(glitch(text, mode, allowFontShuffle and true or false))
+end
+\end{luacode*}
+
+% ---------- User macros (pass the gate state directly to Lua)
+
+\DeclareDocumentCommand{\glitch}{m m}{%
+  \leavevmode
+  \ifglitchallowCF
+    \directlua{__glitch_print("\luaescapestring{#1}", "\luaescapestring{#2}", true)}%
+  \else
+    \directlua{__glitch_print("\luaescapestring{#1}", "\luaescapestring{#2}", false)}%
+  \fi
+}
+
+% math variant (identical behavior; API symmetry)
+\DeclareDocumentCommand{\glitchmath}{m m}{%
+  \leavevmode
+  \ifglitchallowCF
+    \directlua{__glitch_print("\luaescapestring{#1}", "\luaescapestring{#2}", true)}%
+  \else
+    \directlua{__glitch_print("\luaescapestring{#1}", "\luaescapestring{#2}", false)}%
+  \fi
+}
+
+% ---------- Fairy helpers (between-paragraph whispers)
+\newlength\fairyTopSkip    \setlength{\fairyTopSkip}{.5\baselineskip}
+\newlength\fairyBottomSkip \setlength{\fairyBottomSkip}{.25\baselineskip}
+
+% \fairy[<modes>]{<text>} — default CF (full rainbow) via the gate
+\DeclareDocumentCommand{\fairy}{O{CF} m}{%
+  \par\vspace{\fairyTopSkip}\noindent
+  \begingroup
+    \glitchallowCFtrue
+    \glitch{#2}{#1}%
+  \endgroup
+  \par\vspace{\fairyBottomSkip}%
+}
+
+% Multi-line variant
+\NewDocumentEnvironment{fairyblock}{O{CF}}{%
+  \par\vspace{\fairyTopSkip}\noindent
+  \begingroup
+    \glitchallowCFtrue
+    \def\fairy@mode{#1}%
+}{%
+  \par\endgroup
+  \vspace{\fairyBottomSkip}%
+}
+\newcommand*\fairyline[1]{\noindent\glitch{#1}{\fairy@mode}\par}
+% ---------------------------------------------------------
+% FeyWhisper — Official fairy-channel macro
+%   - Opens CF (Color+Font) mode in glitch.sty
+%   - Places playful inter-paragraph whisper with top/bottom skip
+% ---------------------------------------------------------
+\NewDocumentCommand{\FeyWhisper}{m}{%
+  \par\vspace{\fairyTopSkip}\noindent
+  \begingroup
+    \glitchallowCFtrue
+    \glitch{#1}{CF}%
+  \endgroup
+  \par\vspace{\fairyBottomSkip}%
+}
+
+% ================== End of glitch.sty ==========================

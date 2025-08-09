@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2025-08-08",
+    "version": "1.0.3",
+    "layer": "ONTO",
+    "tag": "GLYPH",
+    "section": "Golden Core Resonance",
+    "file": "sections/07_golden_core.tex",
+    "note": "Added primary glyphic lattice for ONTO arc."
+  },
+  {
+    "date": "2025-08-08",
+    "version": "1.0.3",
+    "layer": "EPI",
+    "tag": "FLOW",
+    "section": "Golden Core Resonance",
+    "file": "sections/07_golden_core.tex",
+    "note": "Refined narrative pacing to hit optimal epiphany point."
+  }
+]

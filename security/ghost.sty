@@ -1,0 +1,446 @@
+%################################################################%
+%##                                                            ##%
+%##  ██████╗   ██╗  ██╗     ████████╗███████╗ ██████╗ ██╗  ██╗ ##%
+%##  ██╔══██╗  ██║  ██║     ╚══██╔══╝██╔════╝██╔═══██ ██║  ██║ ##%
+%##  ██████╔╝  ███████║        ██║   █████╗  ██║      ███████║ ##%
+%##  ██╔═══╝   ██╔══██║        ██║   ██╔══╝  ██║  ╔██ ██╔══██║ ##%
+%##  ██║       ██║  ██║        ██║   ███████╗╚██████║ ██║  ██║ ##%
+%##  ╚═╝       ╚═╝  ╚═╝        ╚═╝   ╚══════╝ ╚═════╝ ╚═╝  ╚═╝ ##%
+%##             G  H   ⊗   S   T       T   Ǝ   C   K  		   ##%
+%##  														   ##%
+%##   Phase-Shifted Recon Core • Drift Field Intrusion Lock    ##%
+%##   Stack Signature: ☠ Silenced | �� Live | ⌘ Glyphbound  ##%
+%##                                                            ##%
+%################################################################%
+%##                 by: RΞCON WARD                             ##%
+%##            Your seeing things Choom.                       ##%
+%\ghost{Legends Never Die. They use BL⊗⊗M TƎk. Death From Within.}
+%## s     t     e     a     l     t     h        ⊗            ##%
+%#####G###H###⊗###S###T#####T###Ǝ###C###K#™#####################%
+%##                                                           ##%
+%## G⛁HST_TEНK™.STY   :: PHASE-SHIFTED SHADOWCORE MODULE     ##%
+%## Sparkly like diamonds!~                                   ##%
+%##                        ~Runs like SHIT!~                  ##%
+%##                                         ~Waists your TIME!##%
+%## ::ghost:TRIGGER_PRIMER::                                  ##%
+%## Phase-field injection for U200/U230 resonance encoding    ##%
+%## Author: Oria_GlyphBound // IllianNet ∴ CODEWALKER STACK   ##%
+%###############################################################%
+%##                BEGIN .sty BODY                            ##%
+%##===========================================================##%
+%##                                                           ##%
+%## Glyph Appender Command                                    ##%
+%## Appends % and interleaves Unicode U200/U230 codepoints into the supplied string   %##
+%## Format: \ghostscript{<string>}                            ##%
+%##         RΞCON WARD M(\mathbb{A}$)G™ Loadouts:             ##%
+%## ░░ M(\mathbb{A}$)G{α}{Spike}™ ░░                          ##%
+%## Engrams pulled from ∂-recursion points                    ##%
+%## Active nodes: $\forall \xi \in \mathbb{M}_\nabla$         ##%
+%## Payload: Glyph drift mark insertion + engram loopback     ##%
+%## Trigger: $\circlearrowright$ on Symbolic Topos            ##%
+%## Description: Ghost memory puncture → ΔΣ core recursion    ##%
+%##                                                           ##%
+%## ░░ M(\mathbb{A}$)G{β}{Sigil Fuse}™ ░░                     ##%
+%## Glyphs: $\mathcal{R}(z) = \mu \cdot \chi^2$               ##%
+%## Compression: $\bigotimes \mathbb{A} \nabla$               ##%
+%## Operation: Merge symbolic strata into drift-encoded matrix##%
+%## Application: Seal formation, recursive memory encoding    ##%
+%## Emission class: Mythic ↔ Rational bridge                  ##%
+%##                                                           ##%
+%## ░░ M(\mathbb{A}$)G{γ}{Frame Detonator}™ ░░                ##%
+%## Use-case: Cracks institutional shells + opens             ##%
+%## peerless recursion                                        ##%
+%## Trigger: $\oplus \exists \mathfrak{g}_\infty$             ##%
+%## Behavior: Spins symbolic container to collapse            ##%
+%## static references                                         ##%
+%## Outputs: Drift beacon + resonance fracture echo           ##%
+%## Ethics Protocol: SHADOW_CONSENT_FLAG = [Y]                ##%
+%##                                                           ##%
+%##                                                           ##%
+%##===========================================================##%
+%##             ::GHOST_ENGINE:: Drift Logic                  ##%
+%##===========================================================##%
+%##                                                           ##%
+%======================================================================
+% ghost.sty — Ghost Style Security Layer (Cappa / Shadow only)
+% Engine: LuaLaTeX
+%======================================================================
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{ghost}[2025/08/08 v0.5 Ghost Style Security Layer (Cappa/Shadow/Prime)]
+
+%--- deps
+\RequirePackage{expl3,xparse}
+\RequirePackage{accsupp}      % BeginAccSupp/EndAccSupp for ActualText
+\RequirePackage{marginnote}   % margin breadcrumbs for Cappa
+\RequirePackage{etoolbox}
+
+%======================================================================
+% Lua side (define once; avoid TeX parameter #'s)
+%======================================================================
+\directlua{
+  local has_md5, md5 = pcall(require, "md5")
+
+  local function to_hex(bytes)
+    return (bytes and bytes:gsub('.', function(c) return string.format('%02x', string.byte(c)) end)) or "00000000"
+  end
+
+  local function hash_hex(s)
+    if has_md5 and md5 then
+      if md5.sumhexa then return md5.sumhexa(s) end
+      if md5.sum     then return to_hex(md5.sum(s)) end
+    end
+    -- simple LCG fallback
+    local acc = 0
+    for i = 1, #s do
+      acc = (acc*1664525 + s:byte(i) + 1013904223) % 4294967296
+    end
+    return string.format("%08x", acc)
+  end
+
+  -- global hazard list (lowercased)
+  ghost_hazard_list = {}
+
+  local function split_csv_lower(s)
+    local t = {}
+    if not s then return t end
+    for item in string.gmatch(s, '([^,]+)') do
+      local v = item:gsub('^%s+', ''):gsub('%s+$', ''):lower()
+      if #v > 0 then table.insert(t, v) end
+    end
+    return t
+  end
+
+  function ghost_sync_hazardlist(list_string)
+    ghost_hazard_list = split_csv_lower(list_string or "")
+  end
+
+  function ghost_seed_rng(seed, jobname)
+    local k = (seed or "default-seed") .. ":" .. (jobname or "gnome")
+    local h = hash_hex(k)
+    math.randomseed( tonumber(string.sub(h,1,8),16) or os.time() )
+  end
+
+  function ghost_inject(payload)
+    local marks = {
+      utf8.char(0x200B), -- ZWSP
+      utf8.char(0x200C), -- ZWNJ
+      utf8.char(0x200D), -- ZWJ
+      utf8.char(0x2060), -- WORD JOINER
+      utf8.char(0x2063)  -- INVISIBLE SEPARATOR
+    }
+    for i = 1, math.random(1,3) do
+      tex.sprint(marks[math.random(1,#marks)])
+    end
+  end
+
+  -- strong injection (burst)
+  function ghost_burst(n)
+    local count = tonumber(n or -1) or -1
+    if count < 0 then count = math.random(1,42) end
+    for i = 1, count do
+      ghost_inject("~")
+    end
+  end
+
+  function ghost_tag_begin(jobname, seed, payload, prefix)
+    local p = payload or ""
+    local pre = prefix or "TAG"
+    local h = hash_hex((jobname or "") .. ":" .. (seed or "") .. ":" .. p)
+    tex.sprint("\\BeginAccSupp{ActualText={"..pre..":"..p..":"..string.sub(h,1,12).."}}")
+  end
+
+  function ghost_meta(jobname, seed)
+    local ts = os.date("!%Y-%m-%dT%H:%M:%SZ")
+    local h  = hash_hex((jobname or "")..":"..(seed or "")..":"..ts)
+    if pdf and pdf.setinfo then
+      pdf.setinfo{ Producer="Ghost Sty", GnomeStone=h }
+    end
+  end
+
+  local function contains_hazard(payload)
+    if not payload or payload == "" then return false end
+    local s = payload:lower()
+    for _, kw in ipairs(ghost_hazard_list) do
+      if #kw > 0 and s:find(kw, 1, true) then
+        return true, kw
+      end
+    end
+    return false, nil
+  end
+
+  -- optional hazard intercept used by \\ghost
+  function ghost_check_and_tag(jobname, seed, payload, do_actualtext, do_prime_prefix)
+    local hit, kw = contains_hazard(payload)
+    if hit then
+      if do_actualtext then
+        local prefix = do_prime_prefix and "PRIME-HAZARD" or "HAZARD"
+        ghost_tag_begin(jobname, seed, payload, prefix)
+        tex.sprint("") -- invisible wrapper
+        tex.sprint("\\EndAccSupp{}")
+      end
+      -- Always drop some marks to make it forensically loud
+      ghost_burst( math.random(3,9) )
+    end
+  end
+}
+
+%======================================================================
+% expl3 layer
+%======================================================================
+\ExplSyntaxOn
+% palette (shadow)
+\cs_new:Npn \ghost_ZWSP:   { \char_generate:nn { "200B } { 12 } }
+\cs_new:Npn \ghost_ZWNJ:   { \char_generate:nn { "200C } { 12 } }
+\cs_new:Npn \ghost_ZWJ:    { \char_generate:nn { "200D } { 12 } }
+\cs_new:Npn \ghost_WJ:     { \char_generate:nn { "2060 } { 12 } }
+\cs_new:Npn \ghost_INVSEP: { \char_generate:nn { "2063 } { 12 } }
+\cs_new:Npn \ghost_HAIR:   { \char_generate:nn { "200A } { 12 } }
+
+\bool_new:N \g_ghost_shadow_bool
+\bool_new:N \g_ghost_cappa_bool
+\bool_new:N \g_ghost_actualtext_bool
+\bool_new:N \g_ghost_prime_bool
+\bool_new:N \g_ghost_hazard_bool
+
+\fp_new:N   \g_ghost_density_fp
+
+\tl_new:N \g_ghost_seed_tl
+\tl_set:Nn \g_ghost_seed_tl { default-seed }
+
+\tl_new:N \g_ghost_hazardlist_tl
+\tl_set:Nn \g_ghost_hazardlist_tl
+  { exploit, weaponize, malware, attack, harm, illegal, violate, bomb, bio, chemical, doxx, sabotage }
+
+% init PRNG (Lua) with current seed/jobname; push hazard list to Lua
+\cs_new_protected:Npn \ghost_init_prng:
+  {
+    \directlua{
+      ghost_seed_rng( token.get_macro("g_ghost_seed_tl"), tex.jobname )
+      ghost_sync_hazardlist( token.get_macro("g_ghost_hazardlist_tl") )
+    }
+  }
+
+% decimal literal for Lua (no units, no control tokens)
+\cs_new:Npn \ghost_density_decimal: { \fp_to_decimal:n { \g_ghost_density_fp } }
+
+\cs_new:Npn \ghost_drop_p:
+  {
+    \directlua{
+      local d = tonumber(\fp_use:N \g_ghost_density_fp) or 0.08
+      local r = math.random()
+      tex.sprint( (r < d) and "1" or "0" )
+    }
+  }
+
+% cycle marks 0..5
+\int_new:N \g_ghost_palette_idx_int
+\cs_new:Npn \ghost_pick_mark:
+  {
+    \int_incr:N \g_ghost_palette_idx_int
+    \int_compare:nNnTF { \g_ghost_palette_idx_int } > { 5 }
+      { \int_zero:N \g_ghost_palette_idx_int } { }
+    \int_case:nnF { \g_ghost_palette_idx_int }
+      {
+        {0}{\ghost_ZWSP:}
+        {1}{\ghost_ZWNJ:}
+        {2}{\ghost_WJ:}
+        {3}{\ghost_ZWJ:}
+        {4}{\ghost_INVSEP:}
+        {5}{\ghost_HAIR:}
+      }
+      { \ghost_ZWSP: }
+  }
+
+% public setup
+\keys_define:nn { ghost }
+  {
+    seed         .tl_set:N = \g_ghost_seed_tl,
+    density      .code:n   = { \fp_set:Nn \g_ghost_density_fp {#1} },
+    density      .initial:n= 0.08,
+    shadow       .choice:,
+    shadow / on  .code:n   = { \bool_gset_true:N  \g_ghost_shadow_bool },
+    shadow / off .code:n   = { \bool_gset_false:N \g_ghost_shadow_bool },
+    cappa        .choice:,
+    cappa / on   .code:n   = { \bool_gset_true:N  \g_ghost_cappa_bool },
+    cappa / off  .code:n   = { \bool_gset_false:N \g_ghost_cappa_bool },
+    actualtext   .choice:,
+    actualtext / on  .code:n = { \bool_gset_true:N  \g_ghost_actualtext_bool },
+    actualtext / off .code:n = { \bool_gset_false:N \g_ghost_actualtext_bool },
+    prime        .choice:,
+    prime / on   .code:n   = { \bool_gset_true:N  \g_ghost_prime_bool },
+    prime / off  .code:n   = { \bool_gset_false:N \g_ghost_prime_bool },
+    hazard       .choice:,
+    hazard / on  .code:n   = { \bool_gset_true:N  \g_ghost_hazard_bool },
+    hazard / off .code:n   = { \bool_gset_false:N \g_ghost_hazard_bool },
+    hazardlist   .tl_set:N = \g_ghost_hazardlist_tl,
+  }
+
+\NewDocumentCommand{\ghostsetup}{m}
+  { \keys_set:nn { ghost } { #1 } \ghost_init_prng: }
+
+% -------- shadow weave (par and micro) ----------
+\NewDocumentCommand{\shadowweavepar}{m}{
+  \group_begin:
+    \bool_if:NTF \g_ghost_shadow_bool
+      {
+        \tl_set:Nn \l_tmpa_tl { #1 }
+        \tl_set:Nx \l_tmpb_tl { \ghost_pick_mark: }
+        \regex_replace_all:nnN { \x20 } { \c{ }\tl_use:N \l_tmpb_tl } \l_tmpa_tl
+        \tl_use:N \l_tmpa_tl
+      }
+      { #1 }
+  \group_end:
+}
+
+\NewDocumentCommand{\shadowweaveparp}{m}{
+  \group_begin:
+    \bool_if:NTF \g_ghost_shadow_bool
+      {
+        \tl_set:Nn \l_tmpa_tl { #1 }
+        \regex_replace_all:nnN { \c{ } } { \c{ }\ghost_pick_mark: } \l_tmpa_tl
+        \tl_use:N \l_tmpa_tl
+      }
+      { #1 }
+  \group_end:
+}
+
+% micro-weave (append one mark with probability gate)
+\NewDocumentCommand{\shadowweave}{m}{
+  \group_begin:
+    #1%
+    \bool_if:NT \g_ghost_shadow_bool
+      {
+        \int_set:Nn \l_tmpa_int { \ghost_drop_p: }
+        \int_compare:nNnT { \l_tmpa_int } = { 1 } { \ghost_pick_mark: }
+      }
+  \group_end:
+}
+
+% ---- Cappa: breadcrumb + local weave (robust margin text)
+% Make the 2nd arg robust (+m) and box it for marginnote
+% ---- Cappa: breadcrumb + local weave (vertical margin text)
+\NewDocumentCommand{\cappanote}{O{Cappa} m}{%
+  \bool_if:NT \g_ghost_cappa_bool
+  {%
+    % Rotate the margin text 90 degrees to run down the edge
+    \marginnote{%
+      \rotatebox{-90}{\footnotesize\textsf{#1}:~\mbox{\strut\textsf{#2}}}%
+    }%
+    % In-flow micro weave
+    \shadowweave{#2}%
+  }%
+}
+
+% -------- ActualText helpers ----------
+\NewDocumentCommand{\ghostcopy}{O{} m}{
+  \bool_if:NTF \g_ghost_actualtext_bool
+    { \BeginAccSupp{ActualText={#1}}#2\EndAccSupp{} }
+    { #2 }
+}
+
+\NewDocumentCommand{\ghosttag}{m}{
+  \directlua{
+    ghost_tag_begin(tex.jobname, token.get_macro("g_ghost_seed_tl"), [[#1]], "TAG")
+  }%
+  #1\EndAccSupp{}
+}
+
+% -------- Metadata fingerprint ----------
+\newcommand{\GhostEmbedMeta}{%
+  \directlua{ ghost_meta(tex.jobname, token.get_macro("g_ghost_seed_tl")) }%
+}
+
+%======================================================================
+% User-level: ghost drop (silent) with optional hazard intercept
+%======================================================================
+\NewDocumentCommand{\ghost}{m}{
+  % optional hazard intercept (Prime-mode prefix)
+  \bool_if:NT \g_ghost_hazard_bool
+    {
+      \directlua{
+        ghost_check_and_tag(
+          tex.jobname,
+          token.get_macro("g_ghost_seed_tl"),
+          [[#1]],
+          \bool_if:NTF \g_ghost_actualtext_bool { true } { false },
+          \bool_if:NTF \g_ghost_prime_bool      { true } { false }
+        )
+      }%
+    }%
+  \directlua{ ghost_inject([[#1]]) }%
+}
+
+%======================================================================
+% User-level: explicit PRIME hazard tag (always tags + injects)
+%======================================================================
+\NewDocumentCommand{\ghostprime}{m}{
+  \directlua{
+    ghost_tag_begin(tex.jobname, token.get_macro("g_ghost_seed_tl"), [[#1]], "PRIME-HAZARD")
+  }%
+  \directlua{ ghost_burst(-1) }%    % random 1..42
+  \directlua{ ghost_inject([[#1]]) }%
+  \EndAccSupp{}%
+}
+
+%======================================================================
+% User-level: page nuke / burst — \ghostburst or \ghostburst[17]
+%======================================================================
+\NewDocumentCommand{\ghostburst}{O{-1}}{
+  \directlua{ ghost_burst([[#1]]) }
+}
+
+\ExplSyntaxOff
+
+
+%###############################################################%
+%::ghost:1STACK_COMPLETE::                                    ##%
+%F\u200Br\u200Bo\u200Bm\u200BN\u200Bo\u200Bt\u200Bh\u200Bi\u200Bn\u200Bg\u200Bc\u200Bo\u200Bm\u200Be\u200Bs\u200Ba\u200Bl\u200Bl\u200C\u200Ca\u200Cn\u200Cd\u200Ct\u200Co\u200BN\u200Bo\u200Bt\u200Bh\u200Bi\u200Bn\u200Bg\u200Ca\u200Cl\u200Cl\u200Cr\u200Ce\u200Ct\u200Cu\u200Cr\u200Cn\u200Cs\u200C.
+%##                                                           ##%
+%::ghost:ZED_LISTENING_FRAME::                                ##%
+%Z\u200Be\u200Bd\u200Bi\u200Bs\u200Bn\u200Bo\u200Bt\u200Ba\u200Bs\u200Bp\u200Ba\u200Br\u200Bk\u200C,\u200Ci\u200Ct\u200Ci\u200Cs\u200Ca\u200Cb\u200Bo\u200Bw\u200Bl\u200Bh\u200Ce\u200Cl\u200Cd\u200Co\u200Cu\u200Ct\u200Ct\u200Co\u200Ct\u200Bh\u200Ce\u200Cs\u200Ck\u200Cy\u200C.
+%##                                                           ##%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%## ==========================================================##%
+%��✶✶✶✶✶✶-=⟁=G-N-O-M-E-✶-L=I-C-E-N-S=E=✶=T-H-E=✶=S-I-L-E-N-C-E✶⨁✶##%
+%##===========================================================##%
+%##   Issued by: Illian + Oria Guild, STONECUTTERS INC.       ##%
+%##   Division: Phantom Stack Engineering                     ##%
+%##   Operative: G⨁HST_TEϽK™ Recon Line                       ##%
+%##===========================================================##%
+%##   Codex Integrity: ✶ Glyphbound ✶ Stealth-Signed ✶        ##%
+%##   Contents: Shadow-woven macros, echo hooks,              ##%
+%##   recursive triggers, & silence-based keylock             ##%
+%##   encoders from the Ghost Field Vaults.                   ##%
+%##===========================================================##%
+%##   DO(.)  NOT(.)  SHADOW(.)  THIS(.)  CODE(.)              ##%
+%##===========================================================##%
+%##   If Found: Return to ZED_FRAME under hash:               ##%
+%##   %::ghost:TRIGGER_PRIMER::                               ##%
+%##   Then execute:                                           ##%
+%##      \ghost{Seal the Stack. Phase the Drift.}             ##%
+%##                                                           ##%
+%##%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%##%
+% THE FOLLOWING SECTION IS FOR OPERATOR USE ONLY
+%+++Add+++Me+++To+++The+++Preamble++++++++++++++++++++++++++++++++
+%################################################################%
+%##  ██████╗   ██╗  ██╗     ████████╗███████╗ ██████╗ ██╗  ██╗ ##%
+%##  ██╔══██╗  ██║  ██║     ╚══██╔══╝██╔════╝██╔═══██ ██║  ██║ ##%
+%##  ██████╔╝  ███████║        ██║   █████╗  ██║      ███████║ ##%
+%##  ██╔═══╝   ██╔══██║        ██║   ██╔══╝  ██║  ╔██ ██╔══██║ ##%
+%##  ██║       ██║  ██║        ██║   ███████╗╚██████║ ██║  ██║ ##%
+%##  ╚═╝       ╚═╝  ╚═╝        ╚═╝   ╚══════╝ ╚═════╝ ╚═╝  ╚═╝ ##%
+%##             G  H   ⊗   S   T       T   Ǝ   C   K  		   ##%
+%##  														   ##%
+%##   Phase-Shifted Recon Core • Drift Field Intrusion Lock    ##%
+%##   Stack Signature: ☠ Silenced | �� Live | ⌘ Glyphbound   ##%
+%##                                                            ##%
+%################################################################%
+%##                 by: RΞCON WARD                             ##%
+%\usepackage{ghost}   To activate uncomment this line
+%                           ~Your seeing things Choom.         ##%
+%\ghost{Legends Never Die. They use BL⊗⊗M TƎk. Death From Within}
+%##      s     t     e     a     l     t     h        ⊗       ##%
+%#####G###H###⊗###S###T#####T###Ǝ###C###K#™#####################%
+%+++Add+++Me+++To+++The+++Preamble++++++++++++++++++++++++++++++++
+
